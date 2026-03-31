@@ -50,26 +50,55 @@ const PROJECTS = [
     id: "dubflow",
     title: "dubflow",
     short: "a context-aware desktop focus companion",
-    description:
-      "Detail view copy for dubflow. Replace with your narrative and image paths.",
-    thumb: "images/placeholder-2.svg",
-    images: ["images/placeholder-2.svg", "images/placeholder-3.svg"],
+    description: `DubFlow is a smart focus tracker that keeps you accountable in the cutest way possible. It's a desktop app/overlay that uses both webcam video and window monitoring to recognize when you're focused or distracted. Your on-screen companion, Dubs (the UW mascot), reacts in real time to your behavior. DubFlow has a main dashboard that allows users to start new focus sessions, view focus analytics, control Dubs, and view past session history. Once a focus session is started, the Dubs overlay appears and begins monitoring your focus in real-time.
+
+There are two ways to trigger a distracted state: looking away from the screen or switching to a distracting app/website. Dubs will then respond with a context-aware message like: "Only 20 minutes remain for those integrals, so put that phone away before I eat it." The session is visualized on the progress bar, with yellow segments indicating distracted periods and purple segments indicating focused periods.
+
+DubFlow is built with SvelteKit and Electron. The architecture combines multiple data sources to create a complete picture of your focus state.
+
+The vision processing component uses OpenCV locally for real-time eye tracking and AWS Rekognition for detailed context analysis. Rekognition detects distracting objects in the frame such as phones, drinks, or other devices. For window monitoring, we use get-windows to track active applications and websites.
+
+All this context is piped to an AWS Bedrock-hosted LLM, which generates relevant and concise messages that keep you focused. The messages are displayed on-screen, spoken aloud through ElevenLabs, and sent to the user's phone via Pushover notifications.`,
+    thumb: "images/projects/dubflow-1.jpg",
+    images: [
+      "images/projects/dubflow-1.jpg",
+      "images/projects/dubflow-2.png",
+      "images/projects/dubflow-3.png",
+    ],
   },
   {
     id: "orbit",
     title: "orbit",
     short: "ai-powered hyperlocal networking ",
-    description: "Detail view copy for orbit.",
-    thumb: "images/placeholder-3.svg",
-    images: ["images/placeholder-3.svg", "images/placeholder-1.svg"],
+    description: `Orbit is a hyperlocal networking app that helps users discover and connect with nearby professionals. It combines real-time location, AI-powered semantic search, and an intuitive interface to make networking at conferences, hackathons, and other events more seamless and engaging.
+
+Networking at large events is kinda hard. You meet interesting people in passing, but exchanging contact information feels awkward. Even when you do connect, it's easy to forget who someone was or what they were working on.
+
+We built Orbit to solve this by creating a faster, more intuitive way to discover and connect with people who are physically nearby. The original idea was for events, but the system we built could work anywhere, like coffee shops, coworking spaces, or college campuses.`,
+    thumb: "images/projects/orbit-0.png",
+    images: [
+      "images/projects/orbit-0.png",
+      "images/projects/orbit-1.png",
+      "images/projects/orbit-2.png",
+    ],
   },
   {
     id: "resumeRAG",
     title: "resumeRAG",
-    short: "graphRAG visualizations for recruiter workflows.",
-    description: "Detail view copy for resumeRAG.",
-    thumb: "images/placeholder-1.svg",
-    images: ["images/placeholder-1.svg", "images/placeholder-3.svg"],
+    short:
+      "graphRAG visualizations for recruiter workflows",
+    description: `Recruiters often waste time on irrelevant matches or miss strong candidates entirely, resulting in slower hiring and overlooked talent. ResumeRAG tackles the broken resume filtering process by moving beyond traditional keyword search to a graph-based approach using GraphRAG that actually understands relationships between skills, roles, and experiences.
+
+Our solution builds a knowledge graph of resumes using GraphRAG, then lets users query it in natural language to discover and visualize relevant information. We implemented this with Python, GraphRAG, FastAPI, and React, layering LLM-driven context and visualization on top to make resume search more accurate, transparent, and useful.
+
+What's next for ResumeRAG would be allowing users to upload their own resume database, allowing them to clearly and efficiently identify talent from within their own hiring processes.`,
+    thumb: "images/projects/resumerag-4.png",
+    images: [
+      "images/projects/resumerag-1.png",
+      "images/projects/resumerag-2.png",
+      "images/projects/resumerag-3.png",
+      "images/projects/resumerag-4.png",
+    ],
   },
   {
     id: "forklift",
@@ -103,15 +132,13 @@ If this were a real post you’d keep going: quotes, a clear argument, links, wh
     slug: "first-note",
     title: "First note",
     date: "2026-01-15",
-    body: `A shorter piece. One paragraph is fine.
-
-Add another if you like.`,
+    body: `A shorter piece.`,
   },
   {
     slug: "draft-on-something-you-read",
     title: "Draft on something you read",
     date: "2025-11-02",
-    body: "Placeholder body for a post you haven’t finished yet.",
+    body: "Placeholder body for a post I haven’t finished yet.",
   },
   {
     slug: "short-thought",

@@ -212,13 +212,19 @@ main.main--project-article .project-carousel-slide img {
   background: #fff;
 }
 
-/* Title + body: ~2× writing column (38rem → 76rem), centered */
-main.main--project-article .writing-article-header,
-main.main--project-article .writing-article-body {
+/* Title + meta centered; body left-aligned for readable paragraphs */
+main.main--project-article .writing-article-header {
   max-width: 76rem;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+
+main.main--project-article .writing-article-body {
+  max-width: 76rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
 }
 
 main.main--project-article .project-article.section h1 {
@@ -230,7 +236,7 @@ main.main--project-article .writing-article-meta {
 }
 
 main.main--project-article .writing-article-body p {
-  text-align: center;
+  text-align: left;
 }
 
 /* Art — multi-column masonry: same width per column, packed top-to-bottom (no row dead space) */
@@ -248,7 +254,6 @@ main.main--project-article .writing-article-body p {
   break-inside: avoid;
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid;
-  border: 1px solid #000;
   background: #fff;
 }
 
@@ -325,9 +330,11 @@ main.main--project-article .writing-article-body p {
   min-width: 2.5rem;
   min-height: 2.5rem;
   padding: 0.25rem 0.45rem;
+  /* Invert underlying image (same idea as #custom-cursor) so arrows stay visible on any slide */
   color: #fff;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  border: none;
+  mix-blend-mode: difference;
 }
 
 #project-carousel-prev.project-carousel-btn--overlay {
@@ -390,9 +397,16 @@ main.main--project-article .writing-article-body p {
   cursor: pointer;
 }
 
+.project-carousel-btn.project-carousel-btn--overlay {
+  border: none;
+  padding: 0.25rem 0.45rem;
+  mix-blend-mode: difference;
+}
+
 .project-carousel-btn--overlay:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.72);
+  background: transparent;
   text-decoration: none;
+  opacity: 0.92;
 }
 
 .project-carousel-btn:hover:not(:disabled) {
