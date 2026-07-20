@@ -340,3 +340,19 @@ describe('resize', () => {
     expect(s[0]).toMatchObject(before);
   });
 });
+
+describe('open with explicit position', () => {
+  const vp = { vw: 1440, vh: 900 };
+
+  it('uses spec.x/spec.y instead of the cascade', () => {
+    const s = open([], { app: 'finder', title: 'f', x: 240, y: 170 }, vp);
+    expect(s[0].x).toBe(240);
+    expect(s[0].y).toBe(170);
+  });
+
+  it('clamps an explicit position to the viewport and menu bar', () => {
+    const s = open([], { app: 'finder', title: 'f', x: -50, y: 4, w: 400, h: 300 }, vp);
+    expect(s[0].x).toBe(0);
+    expect(s[0].y).toBe(24);
+  });
+});

@@ -22,6 +22,9 @@ export type OpenSpec = {
   props?: Record<string, unknown>;
   w?: number;
   h?: number;
+  // Explicit position (clamped to the viewport); omits the cascade.
+  x?: number;
+  y?: number;
 };
 
 let nextId = 1;
@@ -51,9 +54,10 @@ export function open(
   const h = spec.h ?? 480;
   const k = state.length;
 
-  // Cascade: x = 80 + 32*k, y = 60 + 32*k, clamped to viewport
-  const rawX = 80 + 32 * k;
-  const rawY = 60 + 32 * k;
+  // Explicit position wins; otherwise cascade: x = 80 + 32*k, y = 60 + 32*k.
+  // Either way, clamp to the viewport (and below the menu bar).
+  const rawX = spec.x ?? 80 + 32 * k;
+  const rawY = spec.y ?? 60 + 32 * k;
   const x = Math.min(Math.max(rawX, 0), viewport.vw - w);
   const y = Math.min(Math.max(rawY, 24), viewport.vh - h);
 

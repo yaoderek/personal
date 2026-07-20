@@ -179,6 +179,7 @@
   function openInFinder(selection: string, navigate = true) {
     const { w, h } = SIZES.finder;
     const finderExists = wins.some((w) => w.app === 'finder');
+    const vp = viewport();
     wins = open(
       wins,
       {
@@ -188,8 +189,11 @@
         props: { initialSelection: selection },
         w,
         h,
+        // Spawn centered (slight upward bias, like macOS), not cascaded.
+        x: Math.round((vp.vw - w) / 2),
+        y: Math.round(Math.max(24, (vp.vh - h) * 0.42)),
       },
-      viewport()
+      vp
     );
     if (finderExists && navigate) finderNavigateTo = selection;
   }

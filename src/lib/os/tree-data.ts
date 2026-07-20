@@ -10,6 +10,7 @@ import { buildTree } from './fs';
  * README content, authored as real HTML (injected via {@html} by the Doc app).
  */
 const README_HTML = `<p>Hi, I'm Derek.</p>
+<p>I'm working as a member of technical staff at Contour (backed by Lightspeed, Chemistry) this summer.</p>
 <p>I'm a student at UW studying art and computer science. I've worked with Oracle on supply chain resilience and optimization, and I'm currently building agentic research systems with the Denolle and GAIA labs at UW.</p>
 <dl class="contact">
   <div><dt>email</dt><dd><a href="mailto:yaoderek06@gmail.com">yaoderek06@gmail.com</a></dd></div>
