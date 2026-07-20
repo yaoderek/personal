@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+import OsPage from '../../layouts/OsPage.astro';
+import { formatDate } from '../../lib/os/format';
+
+const writing = (await getCollection('writing')).sort(
+  (a, b) => b.data.created.getTime() - a.data.created.getTime()
+);
+---
+
+<OsPage
+  initialPath="/writing"
+  title="Writing — Derek Yao"
+  description="Notes and essays by Derek Yao."
+>
+  <h1>Writing</h1>
+  <p><a href="/">← derek's mac</a></p>
+  <ul>
+    {writing.map((w) => {
+      const iso = w.data.created.toISOString().slice(0, 10);
+      return (
+        <li>
+          <a href={`/writing/${w.id}`}>{w.data.title}</a> —{' '}
+          <time datetime={iso}>{formatDate(iso)}</time>
+        </li>
+      );
+    })}
+  </ul>
+</OsPage>

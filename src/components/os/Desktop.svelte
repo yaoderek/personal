@@ -3,6 +3,7 @@
   import type { FSNode, AppId } from '../../lib/os/types';
   import type { Win } from '../../lib/os/windows';
   import { findNode } from '../../lib/os/fs';
+  import { pathForWin, urlToOpenPath, legacyHashToPath } from '../../lib/os/router';
   import { onMount, type ComponentProps } from 'svelte';
   import {
     open,
@@ -29,11 +30,17 @@
     initialPath?: string | null;
     // showResume is accepted now for a stable page contract; used in Task 9.
     showResume: boolean;
+    // When true, open a "file not found" doc window after mount (404 page).
+    notFound?: boolean;
   };
 
-  let { tree, initialPath = null, showResume }: Props = $props();
+  let { tree, initialPath = null, showResume, notFound = false }: Props = $props();
 
   let wins = $state<Win[]>([]);
+
+  // Set while handling a popstate event so the URL-sync $effect does not push a
+  // duplicate history entry for a navigation the browser already performed.
+  let syncingFromPop = false;
 
   // Finder view state — consumed by the Finder component.
   let finderView = $state<'columns' | 'list'>('columns');
@@ -139,10 +146,69 @@
     reducedMotion = !reducedMotion;
   }
 
+  /** Open the "file not found" doc window (404 page). */
+  function openNotFound() {
+    wins = open(
+      wins,
+      {
+        app: 'doc',
+        title: 'file not found',
+        // Internal path so the URL-sync effect keeps the URL at the 404 route.
+        path: '/__notfound__',
+        props: {
+          title: 'file not found',
+          html: `<p>The file you're looking for was moved, deleted, or never existed.</p>
+<p>▸ <a href="/">back to derek's mac</a></p>`,
+        },
+        w: SIZES.doc.w,
+        h: SIZES.doc.h,
+      },
+      viewport()
+    );
+  }
+
   onMount(() => {
+    // Legacy hash shim: rewrite an old #fragment URL to a real path BEFORE
+    // opening anything, and treat the mapped path as the initial deep link.
+    let startPath = initialPath;
+    const mapped = legacyHashToPath(location.hash);
+    if (mapped) {
+      history.replaceState({}, '', mapped);
+      startPath = mapped === '/' ? null : mapped;
+    }
+
     // Open Finder at root on mount, then any deep-linked path.
     openPath('/');
-    if (initialPath) openPath(initialPath);
+    if (startPath) openPath(startPath);
+    if (notFound) openNotFound();
+
+    // Back/forward navigation drives the window manager (never the reverse
+    // while handling this event — syncingFromPop guards the $effect).
+    const onPopState = () => {
+      syncingFromPop = true;
+      const target = urlToOpenPath(location.pathname);
+      if (target) {
+        openPath(target);
+      } else {
+        // Root (or unknown) — just surface the Finder.
+        openPath('/');
+      }
+      syncingFromPop = false;
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  });
+
+  // Keep the URL in sync with the top window. Read-only w.r.t. reactive state:
+  // it only reads `wins` and calls history.pushState (URL is not reactive), so
+  // it can never trigger an effect loop.
+  $effect(() => {
+    const desired = pathForWin(topWindow(wins));
+    // On the 404 page, leave the (unknown) URL untouched so it stays shareable
+    // as the "not found" address the visitor actually hit.
+    if (!notFound && !syncingFromPop && desired !== location.pathname) {
+      history.pushState({}, '', desired);
+    }
   });
 
   const topId = $derived(topWindow(wins)?.id ?? null);

@@ -1,8 +1,10 @@
-import { getCollection } from 'astro:content';
+import fs from 'node:fs';
+import { getCollection, render } from 'astro:content';
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import type { TreeInput } from './types';
+import type { FSNode, TreeInput } from './types';
 import { stripHtml } from './format';
+import { buildTree } from './fs';
 
 /**
  * README content, authored as real HTML (injected via {@html} by the Doc app).
@@ -123,4 +125,40 @@ export async function getTreeInput(
     art,
     life,
   };
+}
+
+/**
+ * Assemble the shared props every page passes to the `<Desktop>` island.
+ *
+ * Renders every markdown body to an HTML string (so the client island can
+ * display it without a network round-trip), builds the filesystem tree, and
+ * detects whether a résumé PDF exists. Must run in Astro frontmatter context.
+ */
+export async function getDesktopProps(): Promise<{
+  tree: FSNode;
+  showResume: boolean;
+}> {
+  // Render markdown bodies to HTML strings, keyed "projects/<slug>" and
+  // "writing/<slug>" — the same shape getTreeInput consumes.
+  const rendered: Record<string, string> = {};
+
+  const [projects, writing] = await Promise.all([
+    getCollection('projects'),
+    getCollection('writing'),
+  ]);
+
+  for (const entry of projects) {
+    await render(entry);
+    rendered[`projects/${entry.id}`] = entry.rendered?.html ?? '';
+  }
+  for (const entry of writing) {
+    await render(entry);
+    rendered[`writing/${entry.id}`] = entry.rendered?.html ?? '';
+  }
+
+  const input = await getTreeInput(rendered);
+  const tree = buildTree(input);
+  const showResume = fs.existsSync('public/resume.pdf');
+
+  return { tree, showResume };
 }

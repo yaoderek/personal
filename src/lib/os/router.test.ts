@@ -1,0 +1,146 @@
+import { describe, it, expect } from 'vitest';
+import { pathForWin, urlToOpenPath, legacyHashToPath } from './router';
+
+describe('pathForWin', () => {
+  it('returns "/" for null (no window)', () => {
+    expect(pathForWin(null)).toBe('/');
+  });
+
+  it('returns "/" for the Finder window (folder selection does not change URL)', () => {
+    expect(pathForWin({ app: 'finder', path: '/' })).toBe('/');
+  });
+
+  it('returns "/" for the Trash window (internal path)', () => {
+    expect(pathForWin({ app: 'trash', path: '/__trash__' })).toBe('/');
+  });
+
+  it('returns "/" for the About window (internal path)', () => {
+    expect(pathForWin({ app: 'about', path: '/__about__' })).toBe('/');
+  });
+
+  it('returns the node path for a project window', () => {
+    expect(pathForWin({ app: 'project', path: '/projects/speakeasy' })).toBe(
+      '/projects/speakeasy'
+    );
+  });
+
+  it('returns the node path for a doc (writing) window', () => {
+    expect(pathForWin({ app: 'doc', path: '/writing/rue' })).toBe('/writing/rue');
+  });
+
+  it('returns the node path for a gallery (art) window', () => {
+    expect(pathForWin({ app: 'gallery', path: '/art/art-1' })).toBe('/art/art-1');
+  });
+
+  it('returns "/" for a README doc window (root-level doc, no section)', () => {
+    expect(pathForWin({ app: 'doc', path: '/README.txt' })).toBe('/');
+  });
+
+  it('returns "/" when a window has no path', () => {
+    expect(pathForWin({ app: 'doc' })).toBe('/');
+  });
+});
+
+describe('urlToOpenPath', () => {
+  it('returns null for the root "/"', () => {
+    expect(urlToOpenPath('/')).toBeNull();
+  });
+
+  it('maps /projects to the projects folder path', () => {
+    expect(urlToOpenPath('/projects')).toBe('/projects');
+  });
+
+  it('maps /projects/<slug> to the project node path', () => {
+    expect(urlToOpenPath('/projects/speakeasy')).toBe('/projects/speakeasy');
+  });
+
+  it('maps /writing to the writing folder path', () => {
+    expect(urlToOpenPath('/writing')).toBe('/writing');
+  });
+
+  it('maps /writing/<slug> to the writing node path', () => {
+    expect(urlToOpenPath('/writing/rue')).toBe('/writing/rue');
+  });
+
+  it('maps /art to the art folder path', () => {
+    expect(urlToOpenPath('/art')).toBe('/art');
+  });
+
+  it('maps /art/<id> to the art node path', () => {
+    expect(urlToOpenPath('/art/art-1')).toBe('/art/art-1');
+  });
+
+  it('maps /life to the life folder path', () => {
+    expect(urlToOpenPath('/life')).toBe('/life');
+  });
+
+  it('strips a trailing slash before matching', () => {
+    expect(urlToOpenPath('/projects/speakeasy/')).toBe('/projects/speakeasy');
+  });
+
+  it('lowercases the pathname before matching', () => {
+    expect(urlToOpenPath('/Projects/SpeakEasy')).toBe('/projects/speakeasy');
+  });
+
+  it('returns null for an unknown top-level path', () => {
+    expect(urlToOpenPath('/nonsense')).toBeNull();
+  });
+
+  it('returns null for an unknown section', () => {
+    expect(urlToOpenPath('/blog/hello')).toBeNull();
+  });
+
+  it('returns null for a life sub-path (no /life/<id> pages)', () => {
+    expect(urlToOpenPath('/life/anything')).toBeNull();
+  });
+
+  it('returns null for too-deep paths', () => {
+    expect(urlToOpenPath('/projects/speakeasy/extra')).toBeNull();
+  });
+});
+
+describe('legacyHashToPath', () => {
+  it('maps #projects/speakeasy to /projects/speakeasy', () => {
+    expect(legacyHashToPath('#projects/speakeasy')).toBe('/projects/speakeasy');
+  });
+
+  it('maps #writing/rue to /writing/rue', () => {
+    expect(legacyHashToPath('#writing/rue')).toBe('/writing/rue');
+  });
+
+  it('maps #projects to /projects', () => {
+    expect(legacyHashToPath('#projects')).toBe('/projects');
+  });
+
+  it('maps #writing to /writing', () => {
+    expect(legacyHashToPath('#writing')).toBe('/writing');
+  });
+
+  it('maps #art to /art', () => {
+    expect(legacyHashToPath('#art')).toBe('/art');
+  });
+
+  it('maps #life to /life', () => {
+    expect(legacyHashToPath('#life')).toBe('/life');
+  });
+
+  it('maps #contact to /', () => {
+    expect(legacyHashToPath('#contact')).toBe('/');
+  });
+
+  it('maps #home to /', () => {
+    expect(legacyHashToPath('#home')).toBe('/');
+  });
+
+  it('lowercases the hash value', () => {
+    expect(legacyHashToPath('#Projects/SpeakEasy')).toBe('/projects/speakeasy');
+  });
+
+  it('returns null for an unknown hash', () => {
+    expect(legacyHashToPath('#gibberish')).toBeNull();
+  });
+
+  it('returns null for an empty hash', () => {
+    expect(legacyHashToPath('')).toBeNull();
+  });
+});

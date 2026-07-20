@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+import OsPage from '../../layouts/OsPage.astro';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => b.data.created.getTime() - a.data.created.getTime()
+);
+---
+
+<OsPage
+  initialPath="/projects"
+  title="Projects — Derek Yao"
+  description="Things Derek Yao has built — web apps, tools, and experiments."
+>
+  <h1>Projects</h1>
+  <p><a href="/">← derek's mac</a></p>
+  <ul>
+    {projects.map((p) => (
+      <li>
+        <a href={`/projects/${p.id}`}>{p.data.title}</a> — {p.data.oneLiner}
+      </li>
+    ))}
+  </ul>
+</OsPage>
