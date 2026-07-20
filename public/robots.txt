@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yaoderek.github.io/personal/sitemap-index.xml

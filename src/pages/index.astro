@@ -2,12 +2,28 @@
 import OsPage from '../layouts/OsPage.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
+const jsonLd = {
+  '@type': 'Person',
+  name: 'Derek Yao',
+  url: Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined,
+  email: 'mailto:yaoderek06@gmail.com',
+  affiliation: {
+    '@type': 'CollegeOrUniversity',
+    name: 'University of Washington',
+  },
+  sameAs: [
+    'https://github.com/yaoderek',
+    'https://linkedin.com/in/yaoderek',
+  ],
+};
 ---
 
 <OsPage
   initialPath={null}
   title="Derek Yao"
   description="Derek Yao — projects, writing, art. A fake little Mac as a personal website."
+  jsonLd={jsonLd}
 >
   <h1>Derek Yao</h1>
   <p>

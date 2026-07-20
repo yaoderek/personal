@@ -19,6 +19,7 @@ interface Props {
   description: string;
   ogImage?: string | null;
   notFound?: boolean;
+  jsonLd?: Record<string, unknown> | null;
 }
 
 const {
@@ -27,6 +28,7 @@ const {
   description,
   ogImage = null,
   notFound = false,
+  jsonLd = null,
 } = Astro.props;
 
 const { tree, showResume } = await getDesktopProps();
@@ -82,6 +84,14 @@ const ogImageAbsolute = Astro.site
     <meta property="og:image" content={ogImageAbsolute} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImageAbsolute} />
+    {
+      jsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify({ '@context': 'https://schema.org', ...jsonLd })}
+        />
+      )
+    }
     {
       import.meta.env.PROD && (
         <>
