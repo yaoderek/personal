@@ -60,6 +60,21 @@
     window.addEventListener('keydown', onKeydown);
     return () => window.removeEventListener('keydown', onKeydown);
   });
+
+  // Touch swipe support
+  let touchStartX = 0;
+
+  function onPointerDown(e: PointerEvent) {
+    touchStartX = e.clientX;
+  }
+
+  function onPointerUp(e: PointerEvent) {
+    const delta = e.clientX - touchStartX;
+    if (Math.abs(delta) > 40) {
+      if (delta < 0) next();
+      else prev();
+    }
+  }
 </script>
 
 <div class="gallery">
@@ -85,7 +100,12 @@
     </div>
   </div>
 
-  <div class="stage">
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="stage"
+    onpointerdown={onPointerDown}
+    onpointerup={onPointerUp}
+  >
     <img class="shot" src={item.imageUrl} alt={item.title} />
   </div>
 </div>

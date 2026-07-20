@@ -15,9 +15,10 @@
     minimized: Win[];
     onrestore: (id: number) => void;
     reducedMotion: boolean;
+    isMobile?: boolean;
   };
 
-  let { items, trailing = [], minimized, onrestore, reducedMotion }: Props = $props();
+  let { items, trailing = [], minimized, onrestore, reducedMotion, isMobile = false }: Props = $props();
 
   // Touch device detection — always visible, no magnification
   const isTouch =
@@ -219,8 +220,8 @@
       </div>
     {/each}
 
-    <!-- Minimized windows section -->
-    {#if minimized.length > 0}
+    <!-- Minimized windows section (hidden on mobile) -->
+    {#if !isMobile && minimized.length > 0}
       <div class="divider" aria-hidden="true"></div>
       {#each minimized as win, mi (win.id)}
         {@const idx = items.length + mi}
@@ -272,8 +273,8 @@
       {/each}
     {/if}
 
-    <!-- Trailing items (Trash) -->
-    {#if trailing.length > 0}
+    <!-- Trailing items (Trash) — hidden on mobile -->
+    {#if !isMobile && trailing.length > 0}
       <div class="divider" aria-hidden="true"></div>
       {#each trailing as item, ti (item.id)}
         {@const idx = items.length + minimized.length + ti}

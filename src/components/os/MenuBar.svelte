@@ -8,6 +8,7 @@
     finderView: 'columns' | 'list';
     reducedMotion: boolean;
     ontogglereducedmotion: () => void;
+    isMobile?: boolean;
   };
 
   let {
@@ -17,6 +18,7 @@
     finderView,
     reducedMotion,
     ontogglereducedmotion,
+    isMobile = false,
   }: Props = $props();
 
   // Which menu is open: null | 'apple' | 'file' | 'view'
@@ -92,32 +94,34 @@
   role="menubar"
   aria-label="Menu bar"
 >
-  <!-- Apple glyph -->
-  <div class="menu-item-wrap">
-    <button
-      class="menu-title apple-btn"
-      class:open={openMenu === 'apple'}
-      aria-haspopup="menu"
-      aria-expanded={openMenu === 'apple'}
-      onclick={() => toggleMenu('apple')}
-      onmouseenter={() => hoverMenu('apple')}
-      aria-label="Apple menu"
-    >
-      <svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor" aria-hidden="true">
-        <path d="M10.8 7.9c0-1.8 1.5-2.7 1.6-2.7-0.9-1.3-2.2-1.4-2.7-1.4-1.1-0.1-2.2 0.7-2.8 0.7s-1.5-0.6-2.5-0.6C3 3.9 1.6 4.8 0.8 6.2c-1.5 2.6-0.4 6.5 1.1 8.6 0.7 1 1.5 2.1 2.6 2.1s1.5-0.7 2.8-0.7 1.6 0.7 2.7 0.6c1.1 0 1.9-1 2.6-2 0.8-1.1 1.1-2.2 1.2-2.3-0.1 0-2-0.8-2-3.6zM8.9 2.4c0.6-0.7 1-1.7 0.9-2.7-0.9 0-1.9 0.6-2.6 1.3-0.5 0.6-1 1.6-0.9 2.5 1 0.1 2-0.5 2.6-1.1z"/>
-      </svg>
-    </button>
-    {#if openMenu === 'apple'}
-      <ul class="dropdown" role="menu">
-        <li role="menuitem">
-          <button
-            class="menu-action"
-            onclick={() => { onopenabout(); closeMenu(); }}
-          >About this site</button>
-        </li>
-      </ul>
-    {/if}
-  </div>
+  {#if !isMobile}
+    <!-- Apple glyph -->
+    <div class="menu-item-wrap">
+      <button
+        class="menu-title apple-btn"
+        class:open={openMenu === 'apple'}
+        aria-haspopup="menu"
+        aria-expanded={openMenu === 'apple'}
+        onclick={() => toggleMenu('apple')}
+        onmouseenter={() => hoverMenu('apple')}
+        aria-label="Apple menu"
+      >
+        <svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor" aria-hidden="true">
+          <path d="M10.8 7.9c0-1.8 1.5-2.7 1.6-2.7-0.9-1.3-2.2-1.4-2.7-1.4-1.1-0.1-2.2 0.7-2.8 0.7s-1.5-0.6-2.5-0.6C3 3.9 1.6 4.8 0.8 6.2c-1.5 2.6-0.4 6.5 1.1 8.6 0.7 1 1.5 2.1 2.6 2.1s1.5-0.7 2.8-0.7 1.6 0.7 2.7 0.6c1.1 0 1.9-1 2.6-2 0.8-1.1 1.1-2.2 1.2-2.3-0.1 0-2-0.8-2-3.6zM8.9 2.4c0.6-0.7 1-1.7 0.9-2.7-0.9 0-1.9 0.6-2.6 1.3-0.5 0.6-1 1.6-0.9 2.5 1 0.1 2-0.5 2.6-1.1z"/>
+        </svg>
+      </button>
+      {#if openMenu === 'apple'}
+        <ul class="dropdown" role="menu">
+          <li role="menuitem">
+            <button
+              class="menu-action"
+              onclick={() => { onopenabout(); closeMenu(); }}
+            >About this site</button>
+          </li>
+        </ul>
+      {/if}
+    </div>
+  {/if}
 
   <!-- Derek Yao (direct button) -->
   <button
@@ -125,83 +129,85 @@
     onclick={() => { onopenpath('/README.txt'); }}
   >Derek Yao</button>
 
-  <!-- File menu -->
-  <div class="menu-item-wrap">
-    <button
-      class="menu-title"
-      class:open={openMenu === 'file'}
-      aria-haspopup="menu"
-      aria-expanded={openMenu === 'file'}
-      onclick={() => toggleMenu('file')}
-      onmouseenter={() => hoverMenu('file')}
-    >File</button>
-    {#if openMenu === 'file'}
-      <ul class="dropdown" role="menu">
-        <li role="menuitem">
-          <a
-            class="menu-action"
-            href="https://github.com/yaoderek"
-            target="_blank"
-            rel="noopener"
-            onclick={closeMenu}
-          >GitHub ↗</a>
-        </li>
-        <li role="menuitem">
-          <a
-            class="menu-action"
-            href="https://www.linkedin.com/in/yaoderek/"
-            target="_blank"
-            rel="noopener"
-            onclick={closeMenu}
-          >LinkedIn ↗</a>
-        </li>
-      </ul>
-    {/if}
-  </div>
+  {#if !isMobile}
+    <!-- File menu -->
+    <div class="menu-item-wrap">
+      <button
+        class="menu-title"
+        class:open={openMenu === 'file'}
+        aria-haspopup="menu"
+        aria-expanded={openMenu === 'file'}
+        onclick={() => toggleMenu('file')}
+        onmouseenter={() => hoverMenu('file')}
+      >File</button>
+      {#if openMenu === 'file'}
+        <ul class="dropdown" role="menu">
+          <li role="menuitem">
+            <a
+              class="menu-action"
+              href="https://github.com/yaoderek"
+              target="_blank"
+              rel="noopener"
+              onclick={closeMenu}
+            >GitHub ↗</a>
+          </li>
+          <li role="menuitem">
+            <a
+              class="menu-action"
+              href="https://www.linkedin.com/in/yaoderek/"
+              target="_blank"
+              rel="noopener"
+              onclick={closeMenu}
+            >LinkedIn ↗</a>
+          </li>
+        </ul>
+      {/if}
+    </div>
 
-  <!-- View menu -->
-  <div class="menu-item-wrap">
-    <button
-      class="menu-title"
-      class:open={openMenu === 'view'}
-      aria-haspopup="menu"
-      aria-expanded={openMenu === 'view'}
-      onclick={() => toggleMenu('view')}
-      onmouseenter={() => hoverMenu('view')}
-    >View</button>
-    {#if openMenu === 'view'}
-      <ul class="dropdown" role="menu">
-        <li role="menuitem">
-          <button
-            class="menu-action"
-            onclick={() => { ontogglelist('columns'); closeMenu(); }}
-          >
-            <span class="check">{finderView === 'columns' ? '✓' : ''}</span>
-            as Columns
-          </button>
-        </li>
-        <li role="menuitem">
-          <button
-            class="menu-action"
-            onclick={() => { ontogglelist('list'); closeMenu(); }}
-          >
-            <span class="check">{finderView === 'list' ? '✓' : ''}</span>
-            as List
-          </button>
-        </li>
-        <li class="separator" role="separator"></li>
-        <li role="menuitem">
-          <button
-            class="menu-action"
-            onclick={() => { ontogglereducedmotion(); closeMenu(); }}
-          >
-            <span class="check">{reducedMotion ? '✓' : ''}</span>
-            Reduce Motion
-          </button>
-        </li>
-      </ul>
-    {/if}
-  </div>
+    <!-- View menu -->
+    <div class="menu-item-wrap">
+      <button
+        class="menu-title"
+        class:open={openMenu === 'view'}
+        aria-haspopup="menu"
+        aria-expanded={openMenu === 'view'}
+        onclick={() => toggleMenu('view')}
+        onmouseenter={() => hoverMenu('view')}
+      >View</button>
+      {#if openMenu === 'view'}
+        <ul class="dropdown" role="menu">
+          <li role="menuitem">
+            <button
+              class="menu-action"
+              onclick={() => { ontogglelist('columns'); closeMenu(); }}
+            >
+              <span class="check">{finderView === 'columns' ? '✓' : ''}</span>
+              as Columns
+            </button>
+          </li>
+          <li role="menuitem">
+            <button
+              class="menu-action"
+              onclick={() => { ontogglelist('list'); closeMenu(); }}
+            >
+              <span class="check">{finderView === 'list' ? '✓' : ''}</span>
+              as List
+            </button>
+          </li>
+          <li class="separator" role="separator"></li>
+          <li role="menuitem">
+            <button
+              class="menu-action"
+              onclick={() => { ontogglereducedmotion(); closeMenu(); }}
+            >
+              <span class="check">{reducedMotion ? '✓' : ''}</span>
+              Reduce Motion
+            </button>
+          </li>
+        </ul>
+      {/if}
+    </div>
+  {/if}
 
   <!-- Right side: clock -->
   <div class="right">

@@ -317,6 +317,24 @@
     line-height: 1.4;
   }
 
+  /* ---- responsive: stack vertically on mobile ---- */
+  @media (max-width: 768px) {
+    .body {
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .media {
+      flex: 0 0 40vh;
+      min-height: 40vh;
+    }
+
+    .sidebar {
+      flex: 1 1 auto;
+      overflow-y: visible;
+    }
+  }
+
   /* ---- case study (injected HTML) ---- */
   .case-study {
     font-family: var(--serif-font);

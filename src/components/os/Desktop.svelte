@@ -19,6 +19,7 @@
   import MenuBar from './MenuBar.svelte';
   import Finder from './Finder.svelte';
   import Dock from './Dock.svelte';
+  import MobileFiles from './MobileFiles.svelte';
   import AboutWindow from './apps/AboutWindow.svelte';
   import ProjectWindow from './apps/ProjectWindow.svelte';
   import DocWindow from './apps/DocWindow.svelte';
@@ -48,6 +49,17 @@
   // One-shot navigation signal: openPath sets this to a folder path; the Finder
   // adopts it as its selection then calls onnavigated so we clear it back to null.
   let finderNavigateTo = $state<string | null>(null);
+
+  // Mobile breakpoint detection — reactive via matchMedia change listener.
+  const mq =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 768px)')
+      : null;
+
+  let isMobile = $state(mq ? mq.matches : false);
+
+  // One-shot navigation signal for MobileFiles (mirrors finderNavigateTo pattern).
+  let mobileNavigateTo = $state<string | null>(null);
 
   // Reduced motion state — initialised from matchMedia with jsdom guard.
   let reducedMotion = $state(
@@ -168,6 +180,10 @@
   }
 
   onMount(() => {
+    // Reactive mobile breakpoint listener
+    const onMqChange = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+    if (mq) mq.addEventListener('change', onMqChange);
+
     // Legacy hash shim: rewrite an old #fragment URL to a real path BEFORE
     // opening anything, and treat the mapped path as the initial deep link.
     let startPath = initialPath;
@@ -177,32 +193,44 @@
       startPath = mapped === '/' ? null : mapped;
     }
 
-    // Open Finder at root on mount, then any deep-linked path.
-    openPath('/');
-    if (startPath) openPath(startPath);
-    if (notFound) openNotFound();
+    // On desktop: open Finder at root on mount, then any deep-linked path.
+    if (!isMobile) {
+      openPath('/');
+      if (startPath) openPath(startPath);
+      if (notFound) openNotFound();
+    }
 
     // Back/forward navigation drives the window manager (never the reverse
     // while handling this event — syncingFromPop guards the $effect).
     const onPopState = () => {
       syncingFromPop = true;
       const target = urlToOpenPath(location.pathname);
-      if (target) {
-        openPath(target);
+      if (isMobile) {
+        // On mobile: signal MobileFiles to navigate.
+        mobileNavigateTo = target ?? '/';
       } else {
-        // Root (or unknown) — just surface the Finder.
-        openPath('/');
+        if (target) {
+          openPath(target);
+        } else {
+          // Root (or unknown) — just surface the Finder.
+          openPath('/');
+        }
       }
       syncingFromPop = false;
     };
     window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    return () => {
+      if (mq) mq.removeEventListener('change', onMqChange);
+      window.removeEventListener('popstate', onPopState);
+    };
   });
 
   // Keep the URL in sync with the top window. Read-only w.r.t. reactive state:
   // it only reads `wins` and calls history.pushState (URL is not reactive), so
   // it can never trigger an effect loop.
+  // Skipped on mobile — MobileFiles drives URL via onnavigate callback instead.
   $effect(() => {
+    if (isMobile) return;
     const desired = pathForWin(topWindow(wins));
     // On the 404 page, leave the (unknown) URL untouched so it stays shareable
     // as the "not found" address the visitor actually hit.
@@ -216,6 +244,21 @@
   function activeId(): number | null {
     return topId;
   }
+
+  // Mobile URL sync: push the current FS path to history when user navigates.
+  function onMobileNavigate(path: string) {
+    if (syncingFromPop) return;
+    // Derive the URL from the FS path (same logic as pathForWin but for mobile).
+    // For section folders like /projects we use the path directly;
+    // for root we use '/'; for items we use the path.
+    const url = path === '/' ? '/' : path;
+    if (url !== location.pathname) {
+      history.pushState({}, '', url);
+    }
+  }
+
+  // Effective initial path for mobile (respects legacy hash shim via initialPath).
+  const effectiveInitialPath = $derived(initialPath);
 
   // Dock items ($derived so showResume is tracked reactively)
   const dockItems = $derived([
@@ -277,12 +320,13 @@
 
 <div class="desktop" style:background-image={`url(${wallpaper})`}>
   <MenuBar
-    onopenpath={openPath}
+    onopenpath={isMobile ? onMobileNavigate : openPath}
     onopenabout={openAbout}
     ontogglelist={toggleList}
     {finderView}
     {reducedMotion}
     ontogglereducedmotion={toggleReducedMotion}
+    {isMobile}
   />
 
   <Dock
@@ -291,45 +335,58 @@
     minimized={wins.filter((w) => w.minimized)}
     onrestore={(id) => (wins = restore(wins, id))}
     {reducedMotion}
+    {isMobile}
   />
 
-  {#each wins as win (win.id)}
-    <Window
-      {win}
-      active={win.id === activeId()}
-      onfocus={() => (wins = focus(wins, win.id))}
-      onclose={() => (wins = close(wins, win.id))}
-      onminimize={() => (wins = minimize(wins, win.id))}
-      onfullscreen={() => (wins = toggleFullscreen(wins, win.id))}
-      onmove={(x, y) => (wins = move(wins, win.id, x, y))}
-    >
-      {#if win.app === 'finder'}
-        <Finder
-          {tree}
-          initialSelection={(win.props.initialSelection as string | undefined) ??
-            null}
-          view={finderView}
-          active={win.id === topId}
-          navigateTo={finderNavigateTo}
-          onopen={openPath}
-          onnavigated={() => (finderNavigateTo = null)}
-        />
-      {:else if win.app === 'about'}
-        <AboutWindow />
-      {:else if win.app === 'project'}
-        <ProjectWindow {...win.props as ComponentProps<typeof ProjectWindow>} />
-      {:else if win.app === 'doc'}
-        <DocWindow {...win.props as ComponentProps<typeof DocWindow>} />
-      {:else if win.app === 'gallery'}
-        <GalleryWindow
-          {...win.props as ComponentProps<typeof GalleryWindow>}
-          active={win.id === topId}
-        />
-      {:else if win.app === 'trash'}
-        <TrashWindow />
-      {/if}
-    </Window>
-  {/each}
+  {#if isMobile}
+    <div class="mobile-layer">
+      <MobileFiles
+        {tree}
+        initialPath={effectiveInitialPath}
+        onnavigate={onMobileNavigate}
+        navigateTo={mobileNavigateTo}
+        onnavigated={() => (mobileNavigateTo = null)}
+      />
+    </div>
+  {:else}
+    {#each wins as win (win.id)}
+      <Window
+        {win}
+        active={win.id === activeId()}
+        onfocus={() => (wins = focus(wins, win.id))}
+        onclose={() => (wins = close(wins, win.id))}
+        onminimize={() => (wins = minimize(wins, win.id))}
+        onfullscreen={() => (wins = toggleFullscreen(wins, win.id))}
+        onmove={(x, y) => (wins = move(wins, win.id, x, y))}
+      >
+        {#if win.app === 'finder'}
+          <Finder
+            {tree}
+            initialSelection={(win.props.initialSelection as string | undefined) ??
+              null}
+            view={finderView}
+            active={win.id === topId}
+            navigateTo={finderNavigateTo}
+            onopen={openPath}
+            onnavigated={() => (finderNavigateTo = null)}
+          />
+        {:else if win.app === 'about'}
+          <AboutWindow />
+        {:else if win.app === 'project'}
+          <ProjectWindow {...win.props as ComponentProps<typeof ProjectWindow>} />
+        {:else if win.app === 'doc'}
+          <DocWindow {...win.props as ComponentProps<typeof DocWindow>} />
+        {:else if win.app === 'gallery'}
+          <GalleryWindow
+            {...win.props as ComponentProps<typeof GalleryWindow>}
+            active={win.id === topId}
+          />
+        {:else if win.app === 'trash'}
+          <TrashWindow />
+        {/if}
+      </Window>
+    {/each}
+  {/if}
 </div>
 
 <style>
@@ -340,5 +397,16 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
+  }
+
+  /* Mobile layer: fills the area below the menu bar and above the dock */
+  .mobile-layer {
+    position: fixed;
+    top: var(--menubar-h, 28px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background: var(--win-bg, #f5f5f5);
   }
 </style>
