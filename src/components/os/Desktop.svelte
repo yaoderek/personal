@@ -37,6 +37,17 @@
 
   let { tree, initialPath = null, showResume, notFound = false }: Props = $props();
 
+  // Compute the effective initial path eagerly at component-init time (not in
+  // onMount) so MobileFiles can receive it as a prop on first render.
+  // Guard typeof location for jsdom / SSR environments where it may be absent.
+  const _hashMapped =
+    typeof location !== 'undefined' ? legacyHashToPath(location.hash) : null;
+  // $state so the template re-renders after onMount updates it (belt-and-suspenders;
+  // the eager init means MobileFiles already has the right value on first mount).
+  let effectiveInitialPath = $state<string | null>(
+    _hashMapped !== null ? (_hashMapped === '/' ? null : _hashMapped) : initialPath
+  );
+
   let wins = $state<Win[]>([]);
 
   // Set while handling a popstate event so the URL-sync $effect does not push a
@@ -184,19 +195,20 @@
     const onMqChange = (e: MediaQueryListEvent) => { isMobile = e.matches; };
     if (mq) mq.addEventListener('change', onMqChange);
 
-    // Legacy hash shim: rewrite an old #fragment URL to a real path BEFORE
-    // opening anything, and treat the mapped path as the initial deep link.
-    let startPath = initialPath;
-    const mapped = legacyHashToPath(location.hash);
-    if (mapped) {
-      history.replaceState({}, '', mapped);
-      startPath = mapped === '/' ? null : mapped;
+    // Legacy hash shim: rewrite the URL once (hash → real path) and keep
+    // effectiveInitialPath in sync. The eager init above already computed the
+    // right value for MobileFiles; here we only need the history side-effect.
+    if (_hashMapped !== null) {
+      history.replaceState({}, '', _hashMapped);
+      // Re-assign in case the component mounted in mobile mode after isMobile
+      // resolved (rare, but keeps the $state consistent).
+      effectiveInitialPath = _hashMapped === '/' ? null : _hashMapped;
     }
 
     // On desktop: open Finder at root on mount, then any deep-linked path.
     if (!isMobile) {
       openPath('/');
-      if (startPath) openPath(startPath);
+      if (effectiveInitialPath) openPath(effectiveInitialPath);
       if (notFound) openNotFound();
     }
 
@@ -256,9 +268,6 @@
       history.pushState({}, '', url);
     }
   }
-
-  // Effective initial path for mobile (respects legacy hash shim via initialPath).
-  const effectiveInitialPath = $derived(initialPath);
 
   // Dock items ($derived so showResume is tracked reactively)
   const dockItems = $derived([

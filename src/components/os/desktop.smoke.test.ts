@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { mount, unmount } from 'svelte';
-import { test, expect, beforeAll } from 'vitest';
+import { test, expect, beforeAll, afterEach } from 'vitest';
 import Desktop from './Desktop.svelte';
 import type { FSNode } from '../../lib/os/types';
 
@@ -68,10 +68,33 @@ const fixtureTree: FSNode = {
             },
           },
         },
+        {
+          name: 'speakeasy.app',
+          path: '/projects/speakeasy',
+          kind: 'Application',
+          icon: 'app',
+          open: {
+            app: 'project',
+            props: {
+              title: 'SpeakEasy',
+              oneLiner: 'Speech feedback app',
+              stack: ['TypeScript'],
+              status: 'shipped',
+              created: '2024-06-01',
+              imageUrls: [],
+              bodyHtml: '<p>details</p>',
+            },
+          },
+        },
       ],
     },
   ],
 };
+
+// Clean up location.hash after each test so tests don't bleed into each other.
+afterEach(() => {
+  if (location.hash) history.replaceState({}, '', location.pathname);
+});
 
 test('desktop mounts, opens Finder at root without effect loops', async () => {
   const target = document.body;
@@ -146,4 +169,45 @@ test('dock renders Finder label and restores minimized window via dock click', a
 
   unmount(app);
   target.remove();
+});
+
+// Regression: legacy hash deep-links (#projects/speakeasy) must work on mobile.
+// The hash is mapped eagerly at component-init (not just in onMount) so
+// MobileFiles receives the correct initialPath on its first render.
+test('mobile: legacy hash deep-link #projects/speakeasy shows speakeasy content', async () => {
+  // Set the legacy hash URL before mounting (simulates an old link being opened).
+  history.replaceState({}, '', '/#projects/speakeasy');
+
+  const target = document.createElement('div');
+  document.body.appendChild(target);
+
+  // Force isMobile by returning matches:true from matchMedia for max-width queries.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).matchMedia = (query: string) => ({
+    matches: query.includes('max-width'),
+    addEventListener() {},
+    removeEventListener() {},
+  });
+
+  const app = mount(Desktop, {
+    target,
+    props: { tree: fixtureTree, initialPath: null, showResume: false },
+  });
+  await new Promise((r) => setTimeout(r, 50));
+
+  const text = target.textContent ?? '';
+  // MobileFiles should have deep-navigated into /projects/speakeasy and rendered
+  // the SpeakEasy project content rather than just the root listing.
+  expect(text).toContain('SpeakEasy');
+
+  unmount(app);
+  target.remove();
+
+  // Restore the matchMedia stub to the non-mobile default for subsequent tests.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).matchMedia = () => ({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+  });
 });
