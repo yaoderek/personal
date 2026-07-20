@@ -6,19 +6,30 @@
   type DockItem = {
     id: string;
     label: string;
+    iconUrl?: string;
     action: () => void;
   };
 
   type Props = {
     items: DockItem[];
     trailing?: DockItem[];
+    // App id → real icon URL, for minimized-window icons.
+    appIcons?: Record<string, string>;
     minimized: Win[];
     onrestore: (id: number) => void;
     reducedMotion: boolean;
     isMobile?: boolean;
   };
 
-  let { items, trailing = [], minimized, onrestore, reducedMotion, isMobile = false }: Props = $props();
+  let {
+    items,
+    trailing = [],
+    appIcons = {},
+    minimized,
+    onrestore,
+    reducedMotion,
+    isMobile = false,
+  }: Props = $props();
 
   // Touch device detection — always visible, no magnification
   const isTouch =
@@ -97,14 +108,13 @@
   }
 
 
-  // App id → icon glyph mapping for minimized windows
-  function glyphForApp(app: string): string {
+  // App id → real icon URL for minimized windows.
+  function iconForApp(app: string): string | undefined {
     switch (app) {
-      case 'finder': return 'finder';
-      case 'doc': return 'doc';
-      case 'gallery': return 'photos';
-      case 'project': return 'project';
-      default: return 'generic';
+      case 'finder': return appIcons.finder;
+      case 'doc': return appIcons.notes;
+      case 'gallery': return appIcons.photos;
+      default: return appIcons.notes;
     }
   }
 </script>
@@ -145,79 +155,8 @@
           aria-label={item.label}
           bind:this={iconRefs[i]}
         >
-          {#if item.id === 'finder'}
-            <!-- Finder: blue rounded square, white smile glyph -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#1d72e8"/>
-              <rect x="4" y="4" width="36" height="36" rx="7.92" fill="#4a9af5"/>
-              <!-- Two-tone face simplified: left eye dark, right eye lighter -->
-              <circle cx="16" cy="18" r="4" fill="#1a3a6b"/>
-              <circle cx="28" cy="18" r="4" fill="#e8f4fd"/>
-              <path d="M13 28 Q22 34 31 28" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            </svg>
-          {:else if item.id === 'textedit'}
-            <!-- TextEdit: white square, gray text lines + pencil -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#f0e6d3"/>
-              <rect x="6" y="6" width="32" height="32" rx="4" fill="white" stroke="#d0c8bc" stroke-width="0.5"/>
-              <line x1="11" y1="16" x2="33" y2="16" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-              <line x1="11" y1="21" x2="33" y2="21" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-              <line x1="11" y1="26" x2="26" y2="26" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-              <!-- Pencil -->
-              <path d="M30 29 L36 23 L40 27 L34 33 Z" fill="#e67e22" stroke="#c0621a" stroke-width="0.5"/>
-              <path d="M30 29 L28 38 L36 33 Z" fill="#f5a623" stroke="#c0621a" stroke-width="0.5"/>
-              <line x1="36" y1="23" x2="30" y2="29" stroke="#c0621a" stroke-width="0.5"/>
-            </svg>
-          {:else if item.id === 'photos'}
-            <!-- Photos: white square, 4-petal color pinwheel -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#f5f5f5"/>
-              <!-- 4 petals -->
-              <ellipse cx="22" cy="14" rx="5" ry="8" fill="#e74c3c" transform="rotate(0 22 22)"/>
-              <ellipse cx="22" cy="14" rx="5" ry="8" fill="#3498db" transform="rotate(90 22 22)"/>
-              <ellipse cx="22" cy="14" rx="5" ry="8" fill="#2ecc71" transform="rotate(180 22 22)"/>
-              <ellipse cx="22" cy="14" rx="5" ry="8" fill="#f1c40f" transform="rotate(270 22 22)"/>
-              <circle cx="22" cy="22" r="5" fill="white"/>
-            </svg>
-          {:else if item.id === 'resume'}
-            <!-- Résumé: white square, document + person silhouette -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#5b6af5"/>
-              <rect x="10" y="8" width="24" height="28" rx="3" fill="white"/>
-              <!-- Text lines on document -->
-              <line x1="14" y1="16" x2="30" y2="16" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="14" y1="20" x2="30" y2="20" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="14" y1="24" x2="24" y2="24" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
-              <!-- Person silhouette -->
-              <circle cx="22" cy="30" r="4" fill="#5b6af5"/>
-              <path d="M14 40 Q14 34 22 34 Q30 34 30 40" fill="#5b6af5"/>
-            </svg>
-          {:else if item.id === 'mail'}
-            <!-- Mail: blue square, white envelope outline -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#3b9ede"/>
-              <rect x="7" y="13" width="30" height="20" rx="2.5" fill="white" stroke="#2980b9" stroke-width="0.5"/>
-              <path d="M7 15 L22 24 L37 15" stroke="#2980b9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            </svg>
-          {:else if item.id === 'github'}
-            <!-- GitHub: dark square, white octocat silhouette -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#24292f"/>
-              <!-- Simplified octocat: circle head + cat ears -->
-              <circle cx="22" cy="20" r="9" fill="white"/>
-              <!-- Left ear -->
-              <path d="M13 13 L15 18 L19 15 Z" fill="white"/>
-              <!-- Right ear -->
-              <path d="M31 13 L29 18 L25 15 Z" fill="white"/>
-              <!-- Tentacles (simplified) -->
-              <path d="M15 27 Q12 30 13 34 Q16 36 18 33" stroke="white" stroke-width="1.5" fill="none"/>
-              <path d="M29 27 Q32 30 31 34 Q28 36 26 33" stroke="white" stroke-width="1.5" fill="none"/>
-              <path d="M18 29 Q18 34 22 34 Q26 34 26 29" fill="white"/>
-              <!-- Face details -->
-              <circle cx="19" cy="20" r="1.5" fill="#24292f"/>
-              <circle cx="25" cy="20" r="1.5" fill="#24292f"/>
-              <path d="M19 24 Q22 26 25 24" stroke="#24292f" stroke-width="1" fill="none" stroke-linecap="round"/>
-            </svg>
+          {#if item.iconUrl}
+            <img class="app-icon" src={item.iconUrl} alt="" draggable="false" />
           {/if}
           <span class="tooltip">{item.label}</span>
         </button>
@@ -244,32 +183,8 @@
               <span class="win-thumb">
                 <img src={win.props.thumbUrl as string} alt={win.title}/>
               </span>
-            {:else if glyphForApp(win.app) === 'finder'}
-              <svg viewBox="0 0 44 44" aria-hidden="true">
-                <rect width="44" height="44" rx="9.68" fill="#1d72e8"/>
-                <rect x="4" y="4" width="36" height="36" rx="7.92" fill="#4a9af5"/>
-                <circle cx="16" cy="18" r="4" fill="#1a3a6b"/>
-                <circle cx="28" cy="18" r="4" fill="#e8f4fd"/>
-                <path d="M13 28 Q22 34 31 28" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              </svg>
-            {:else if glyphForApp(win.app) === 'photos'}
-              <svg viewBox="0 0 44 44" aria-hidden="true">
-                <rect width="44" height="44" rx="9.68" fill="#f5f5f5"/>
-                <ellipse cx="22" cy="14" rx="5" ry="8" fill="#e74c3c" transform="rotate(0 22 22)"/>
-                <ellipse cx="22" cy="14" rx="5" ry="8" fill="#3498db" transform="rotate(90 22 22)"/>
-                <ellipse cx="22" cy="14" rx="5" ry="8" fill="#2ecc71" transform="rotate(180 22 22)"/>
-                <ellipse cx="22" cy="14" rx="5" ry="8" fill="#f1c40f" transform="rotate(270 22 22)"/>
-                <circle cx="22" cy="22" r="5" fill="white"/>
-              </svg>
-            {:else}
-              <!-- Generic doc / project glyph -->
-              <svg viewBox="0 0 44 44" aria-hidden="true">
-                <rect width="44" height="44" rx="9.68" fill="#f0e6d3"/>
-                <rect x="6" y="6" width="32" height="32" rx="4" fill="white" stroke="#d0c8bc" stroke-width="0.5"/>
-                <line x1="11" y1="16" x2="33" y2="16" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-                <line x1="11" y1="21" x2="33" y2="21" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-                <line x1="11" y1="26" x2="26" y2="26" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-              </svg>
+            {:else if iconForApp(win.app)}
+              <img class="app-icon" src={iconForApp(win.app)} alt="" draggable="false" />
             {/if}
             <span class="tooltip">{win.title}</span>
           </button>
@@ -292,16 +207,9 @@
             aria-label={item.label}
             bind:this={iconRefs[idx]}
           >
-            <!-- Trash icon -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#e0e0e5"/>
-              <rect x="10" y="13" width="24" height="3.5" rx="1.5" fill="#a0a0aa"/>
-              <rect x="18" y="9.5" width="8" height="4" rx="2" fill="none" stroke="#a0a0aa" stroke-width="1.5"/>
-              <path d="M12 17 L14 36 Q14 38 16 38 H28 Q30 38 30 36 L32 17 Z" fill="#b8b8c2"/>
-              <line x1="19" y1="20" x2="18" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-              <line x1="22" y1="20" x2="22" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-              <line x1="25" y1="20" x2="26" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-            </svg>
+            {#if item.iconUrl}
+              <img class="app-icon" src={item.iconUrl} alt="" draggable="false" />
+            {/if}
             <span class="tooltip">{item.label}</span>
           </button>
         </div>
@@ -322,12 +230,16 @@
     pointer-events: auto;
   }
 
-  /* Dock wrapper: positions the shelf at bottom center */
+  /* Dock wrapper: spans the full width and flex-centers the shelf, which is
+     robust across browsers (mixing `translate` with `transform` for centering
+     broke centering where the `translate` property is unsupported). */
   .dock-wrapper {
     position: fixed;
     bottom: 8px;
-    left: 50%;
-    translate: -50% 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
     z-index: 9998;
     pointer-events: none;
     /* Hidden by default: slide below viewport */
@@ -363,11 +275,11 @@
     align-items: flex-end;
     gap: 4px;
     padding: 6px 10px 4px;
-    background: rgba(250, 250, 250, 0.55);
+    background: var(--dock-bg);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--dock-border);
     box-shadow:
       0 2px 16px rgba(0, 0, 0, 0.18),
       0 0 0 0.5px rgba(0, 0, 0, 0.08);
@@ -418,12 +330,11 @@
     }
   }
 
-  .icon-btn svg {
+  .app-icon {
     width: 44px;
     height: 44px;
     display: block;
-    border-radius: 9.68px;
-    overflow: hidden;
+    -webkit-user-drag: none;
   }
 
   .minimized-win .win-thumb {
@@ -444,7 +355,7 @@
   .divider {
     width: 1px;
     height: 32px;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--dock-divider);
     margin: 0 2px 6px;
     flex-shrink: 0;
     align-self: flex-end;

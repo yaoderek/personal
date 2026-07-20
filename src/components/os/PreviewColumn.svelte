@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { FSNode } from '../../lib/os/types';
   import Icon from './Icon.svelte';
+  import InlineDoc from './InlineDoc.svelte';
+  import InlineProject from './InlineProject.svelte';
 
   type Props = {
     node: FSNode;
@@ -12,39 +14,57 @@
   const iconKind = $derived(node.icon as 'folder' | 'doc' | 'app' | 'image');
 </script>
 
-<div class="preview">
-  <div class="visual">
-    {#if node.previewImage}
-      <img class="thumb" src={node.previewImage} alt="" />
-    {:else if iconKind === 'doc' && node.blurb}
-      <!-- Text files preview as a tiny rendered page, like Finder thumbnails. -->
-      <div class="page-thumb" aria-hidden="true">
-        <p>{node.blurb}</p>
-      </div>
-    {:else}
-      <Icon kind={iconKind} size={48} thumb={node.previewImage ?? null} />
+{#if node.open?.app === 'doc'}
+  <!-- Text files read inline, Notes-style — no window needed. -->
+  <InlineDoc
+    title={(node.open.props.title as string) ?? node.name}
+    html={(node.open.props.html as string) ?? ''}
+    created={(node.open.props.created as string | undefined) ?? node.created ?? null}
+  />
+{:else if node.open?.app === 'project'}
+  <!-- Projects read inline: case study in the browsing pane. -->
+  <InlineProject
+    title={(node.open.props.title as string) ?? node.name}
+    oneLiner={(node.open.props.oneLiner as string) ?? ''}
+    stack={(node.open.props.stack as string[]) ?? []}
+    status={(node.open.props.status as string) ?? ''}
+    created={(node.open.props.created as string) ?? node.created ?? ''}
+    imageUrls={(node.open.props.imageUrls as string[]) ?? []}
+    bodyHtml={(node.open.props.bodyHtml as string) ?? ''}
+    repo={(node.open.props.repo as string | undefined) ?? null}
+    demo={(node.open.props.demo as string | undefined) ?? null}
+    thumbUrl={(node.open.props.thumbUrl as string | undefined) ?? null}
+  />
+{:else}
+  <div class="preview">
+    <div class="visual">
+      {#if node.previewImage}
+        <img class="thumb" src={node.previewImage} alt="" />
+      {:else}
+        <Icon kind={iconKind} size={48} thumb={node.previewImage ?? null} />
+      {/if}
+    </div>
+
+    <div class="name">{node.name}</div>
+
+    {#if node.meta && node.meta.length > 0}
+      <dl class="meta">
+        {#each node.meta as [label, value] (label)}
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        {/each}
+      </dl>
+    {/if}
+
+    {#if node.blurb}
+      <p class="blurb">{node.blurb}</p>
+    {/if}
+
+    {#if node.open?.app === 'gallery'}
+      <button class="open" onclick={() => onopen(node.path)}>Open</button>
     {/if}
   </div>
-
-  <div class="name">{node.name}</div>
-
-  {#if node.meta && node.meta.length > 0}
-    <dl class="meta">
-      {#each node.meta as [label, value] (label)}
-        <dt>{label}</dt>
-        <dd>{value}</dd>
-      {/each}
-    </dl>
-  {/if}
-
-  {#if node.blurb}
-    <p class="blurb">{node.blurb}</p>
-  {/if}
-
-  {#if node.open}
-    <button class="open" onclick={() => onopen(node.path)}>Open</button>
-  {/if}
-</div>
+{/if}
 
 <style>
   .preview {
@@ -73,27 +93,6 @@
     object-fit: contain;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  }
-
-  /* Tiny rendered page for text documents (README, writing). */
-  .page-thumb {
-    width: 124px;
-    height: 160px;
-    background: #fff;
-    border-radius: 3px;
-    box-shadow:
-      0 1px 4px rgba(0, 0, 0, 0.2),
-      0 0 0 0.5px rgba(0, 0, 0, 0.08);
-    padding: 12px 10px;
-    overflow: hidden;
-  }
-
-  .page-thumb p {
-    margin: 0;
-    font-family: var(--serif-font);
-    font-size: 6.5px;
-    line-height: 1.55;
-    color: #3a3a3c;
   }
 
   .name {

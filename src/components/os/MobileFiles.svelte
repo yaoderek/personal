@@ -275,7 +275,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 8px;
-    background: rgba(250, 250, 250, 0.82);
+    background: var(--bar-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 0.5px solid var(--hairline, rgba(0,0,0,0.12));

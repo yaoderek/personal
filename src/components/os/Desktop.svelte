@@ -42,6 +42,8 @@
     notFound?: boolean;
     // Optimized wallpaper URL (built by OsPage via astro:assets).
     wallpaperUrl?: string | null;
+    // Real app-icon URLs for the dock (built by OsPage via astro:assets).
+    dockIcons?: Record<string, string>;
   };
 
   let {
@@ -50,7 +52,23 @@
     showResume,
     notFound = false,
     wallpaperUrl = null,
+    dockIcons = {},
   }: Props = $props();
+
+  // Dark mode — persisted per visitor, toggled from the menu bar.
+  let darkMode = $state(
+    typeof localStorage !== 'undefined' &&
+      localStorage.getItem('derekos-theme') === 'dark'
+  );
+
+  function toggleDarkMode() {
+    darkMode = !darkMode;
+    try {
+      localStorage.setItem('derekos-theme', darkMode ? 'dark' : 'light');
+    } catch {
+      /* storage unavailable (private mode) — theme still applies in-session */
+    }
+  }
 
   // Deploy base path ('/' locally, '/personal/' on a GitHub Pages project
   // site). All history reads/writes go through withBase/stripBase with this.
@@ -76,6 +94,10 @@
   // One-shot navigation signal: openPath sets this to a folder path; the Finder
   // adopts it as its selection then calls onnavigated so we clear it back to null.
   let finderNavigateTo = $state<string | null>(null);
+
+  // Live Finder selection, reported via onselect. Drives the URL when no
+  // gallery/other public window is on top (docs/projects read inline).
+  let finderSelection = $state<string | null>('/README.txt');
 
   // Mobile breakpoint detection — reactive via matchMedia change listener.
   const mq =
@@ -118,6 +140,13 @@
     const node = findNode(tree, path);
     if (!node) return;
 
+    // Docs and projects read inline in the Finder's preview pane — select the
+    // file rather than opening a window.
+    if (node.open && (node.open.app === 'doc' || node.open.app === 'project')) {
+      openInFinder(node.path);
+      return;
+    }
+
     if (node.open) {
       const { w, h } = SIZES[node.open.app];
       wins = open(
@@ -138,25 +167,31 @@
     // Folder or root -> single Finder window.
     const isFolder = node.kind === 'Folder' || node.path === '/';
     if (isFolder) {
-      const { w, h } = SIZES.finder;
-      const finderExists = wins.some((w) => w.app === 'finder');
-      const initialSelection = node.path === '/' ? '/README.txt' : node.path;
-      wins = open(
-        wins,
-        {
-          app: 'finder',
-          title: "derek's mac",
-          path: '/',
-          props: { initialSelection },
-          w,
-          h,
-        },
-        viewport()
-      );
-      // If the Finder window already existed, `open` only focuses it — drive its
-      // selection via the navigate signal so the folder becomes selected.
-      if (finderExists && node.path !== '/') finderNavigateTo = node.path;
+      openInFinder(node.path === '/' ? '/README.txt' : node.path, node.path !== '/');
     }
+  }
+
+  /**
+   * Open (or focus) the single Finder window with `selection` selected.
+   * When the Finder already exists, `navigate` drives its selection via the
+   * one-shot signal (false = just focus, e.g. clicking the Finder dock icon).
+   */
+  function openInFinder(selection: string, navigate = true) {
+    const { w, h } = SIZES.finder;
+    const finderExists = wins.some((w) => w.app === 'finder');
+    wins = open(
+      wins,
+      {
+        app: 'finder',
+        title: "derek's mac",
+        path: '/',
+        props: { initialSelection: selection },
+        w,
+        h,
+      },
+      viewport()
+    );
+    if (finderExists && navigate) finderNavigateTo = selection;
   }
 
   /** Open the About window (no filesystem node needed). */
@@ -257,7 +292,11 @@
   // Skipped on mobile — MobileFiles drives URL via onnavigate callback instead.
   $effect(() => {
     if (isMobile) return;
-    const desired = withBase(pathForWin(topWindow(wins)), BASE);
+    // A public-path window on top (e.g. an art gallery) wins; otherwise the
+    // URL follows what the Finder selection is showing inline.
+    let urlPath = pathForWin(topWindow(wins));
+    if (urlPath === '/') urlPath = fsPathToUrl(finderSelection ?? '/');
+    const desired = withBase(urlPath, BASE);
     // On the 404 page, leave the (unknown) URL untouched so it stays shareable
     // as the "not found" address the visitor actually hit.
     if (!notFound && desired !== location.pathname) {
@@ -339,41 +378,48 @@
     {
       id: 'finder',
       label: 'Finder',
+      iconUrl: dockIcons.finder,
       action: () => openPath('/'),
     },
     {
-      id: 'textedit',
-      label: 'TextEdit',
+      id: 'notes',
+      label: 'Notes',
+      iconUrl: dockIcons.notes,
       action: () => openPath('/writing'),
     },
     {
       id: 'photos',
       label: 'Photos',
+      iconUrl: dockIcons.photos,
       action: () => openPath('/art'),
     },
     ...(showResume
       ? [{
           id: 'resume',
           label: 'Résumé',
+          iconUrl: dockIcons.preview,
           action: () => window.open(withBase('/resume.pdf', BASE), '_blank', 'noopener'),
         }]
       : []),
     {
       id: 'mail',
       label: 'Mail',
+      iconUrl: dockIcons.mail,
       action: () => { location.href = 'mailto:yaoderek06@gmail.com'; },
     },
     {
       id: 'github',
       label: 'GitHub',
+      iconUrl: dockIcons.github,
       action: () => window.open('https://github.com/yaoderek', '_blank', 'noopener'),
     },
   ]);
 
-  const dockTrailing = [
+  const dockTrailing = $derived([
     {
       id: 'trash',
       label: 'Trash',
+      iconUrl: dockIcons.trash,
       action: () => {
         wins = open(
           wins,
@@ -389,11 +435,12 @@
         );
       },
     },
-  ];
+  ]);
 </script>
 
 <div
   class="desktop"
+  class:theme-dark={darkMode}
   style:background-image={wallpaperUrl ? `url(${wallpaperUrl})` : undefined}
 >
   <!-- Skip-to-content: visually hidden until focused, then revealed.
@@ -415,11 +462,14 @@
     {reducedMotion}
     ontogglereducedmotion={toggleReducedMotion}
     {isMobile}
+    {darkMode}
+    ontoggledark={toggleDarkMode}
   />
 
   <Dock
     items={dockItems}
     trailing={dockTrailing}
+    appIcons={dockIcons}
     minimized={wins.filter((w) => w.minimized)}
     onrestore={(id) => (wins = restore(wins, id))}
     {reducedMotion}
@@ -468,6 +518,7 @@
               navigateTo={finderNavigateTo}
               onopen={openPath}
               onnavigated={() => (finderNavigateTo = null)}
+              onselect={(p) => (finderSelection = p)}
             />
           {:else if win.app === 'about'}
             <AboutWindow />

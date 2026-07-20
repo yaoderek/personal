@@ -1,8 +1,16 @@
 ---
 import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import { getDesktopProps } from '../lib/os/tree-data';
 import Desktop from '../components/os/Desktop.svelte';
 import wallpaperSrc from '../assets/wallpaper.jpg';
+import finderIcon from '../assets/dock/finder.png';
+import notesIcon from '../assets/dock/notes.png';
+import photosIcon from '../assets/dock/photos.png';
+import previewIcon from '../assets/dock/preview.png';
+import mailIcon from '../assets/dock/mail.png';
+import githubIcon from '../assets/dock/github.svg';
+import trashIcon from '../assets/dock/trash.png';
 import '../styles/global.css';
 
 interface Props {
@@ -28,6 +36,23 @@ const wallpaper = await getImage({
   width: 2560,
   quality: 72,
 });
+
+// Real app icons for the dock (PNGs extracted from macOS; GitHub's official
+// mark as SVG). webp keeps the alpha channel.
+const dockIcon = (src: ImageMetadata) =>
+  getImage({ src, format: 'webp', width: 128 });
+const [finderI, notesI, photosI, previewI, mailI, trashI] = await Promise.all(
+  [finderIcon, notesIcon, photosIcon, previewIcon, mailIcon, trashIcon].map(dockIcon)
+);
+const dockIcons = {
+  finder: finderI.src,
+  notes: notesI.src,
+  photos: photosI.src,
+  preview: previewI.src,
+  mail: mailI.src,
+  github: githubIcon.src,
+  trash: trashI.src,
+};
 const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 const canonicalUrl = Astro.site
   ? new URL(Astro.url.pathname, Astro.site)
@@ -62,6 +87,7 @@ const ogImageAbsolute =
       showResume={showResume}
       notFound={notFound}
       wallpaperUrl={wallpaper.src}
+      dockIcons={dockIcons}
     />
     <noscript>
       <main class="noscript-content">

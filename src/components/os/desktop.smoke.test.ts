@@ -191,29 +191,21 @@ test('a11y: dialog role + aria-label present; Esc closes top window', async () =
   });
   await new Promise((r) => setTimeout(r, 50));
 
-  // The README.txt doc window + the Finder window should both be present.
-  // Check that at least one element has role="dialog" and aria-label="README.txt"
+  // Docs read inline: no README window opens — the Finder dialog shows the
+  // README content in its preview pane instead.
   const dialogs = target.querySelectorAll('[role="dialog"]');
-  expect(dialogs.length).toBeGreaterThan(0);
+  expect(dialogs.length).toBe(1);
 
-  const readmeDialog = target.querySelector('[role="dialog"][aria-label="README.txt"]');
-  expect(readmeDialog).not.toBeNull();
-
-  // The finder dialog should also be present
   const finderDialog = target.querySelector('[role="dialog"][aria-label="derek\'s mac"]');
   expect(finderDialog).not.toBeNull();
+  expect(finderDialog!.textContent).toContain('README.txt');
 
-  // Dispatch Escape — should close the top window (README.txt, which was opened last)
+  // Dispatch Escape — closes the top (Finder) window.
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   await new Promise((r) => setTimeout(r, 50));
 
-  // After Esc, README.txt dialog should be gone
-  const readmeAfter = target.querySelector('[role="dialog"][aria-label="README.txt"]');
-  expect(readmeAfter).toBeNull();
-
-  // Finder should still be present
   const finderAfter = target.querySelector('[role="dialog"][aria-label="derek\'s mac"]');
-  expect(finderAfter).not.toBeNull();
+  expect(finderAfter).toBeNull();
 
   unmount(app);
   target.remove();

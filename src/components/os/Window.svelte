@@ -339,7 +339,7 @@
     align-items: center;
     padding: 0 10px;
     border-bottom: 0.5px solid var(--hairline);
-    background: rgba(255, 255, 255, 0.4);
+    background: var(--titlebar-bg);
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;

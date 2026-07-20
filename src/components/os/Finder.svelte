@@ -17,6 +17,9 @@
     navigateTo?: string | null;
     onopen: (path: string) => void;
     onnavigated?: () => void;
+    // Reports every selection change so Desktop can sync the URL to what the
+    // visitor is reading (docs/projects render inline in the preview pane).
+    onselect?: (path: string | null) => void;
   };
 
   let {
@@ -27,6 +30,7 @@
     navigateTo = null,
     onopen,
     onnavigated,
+    onselect,
   }: Props = $props();
 
   // initialSelection seeds the selection only once; live changes come via
@@ -43,6 +47,12 @@
       if (navigateTo !== selectedPath) selectedPath = navigateTo;
       onnavigated?.();
     }
+  });
+
+  // Report selection changes upward. Read-only effect: reads selectedPath and
+  // calls a parent callback; it never writes local reactive state.
+  $effect(() => {
+    onselect?.(selectedPath);
   });
 
   // ---- path helpers ----------------------------------------------------
@@ -385,7 +395,7 @@
 
   /* macOS two-tone selection */
   .row.ancestor {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--hover-dim);
   }
 
   .row.selected {
@@ -447,7 +457,7 @@
   }
 
   tbody tr:nth-child(even) {
-    background: rgba(0, 0, 0, 0.025);
+    background: var(--row-alt);
   }
 
   tbody tr.selected {

@@ -31,7 +31,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #fff;
+    background: var(--paper);
   }
 
   .ruler {
@@ -55,7 +55,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    background: #fff;
+    background: var(--paper);
   }
 
   .page {

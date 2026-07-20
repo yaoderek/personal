@@ -37,7 +37,10 @@ const tree: FSNode = {
       icon: 'doc',
       meta: [['Kind', 'Plain Text']],
       blurb: 'Hi, I am Derek.',
-      open: { app: 'doc', props: { title: 'README.txt', html: '<p>hi</p>' } },
+      open: {
+        app: 'doc',
+        props: { title: 'README.txt', html: '<p>Hi, I am Derek.</p>' },
+      },
     },
     {
       name: 'projects',
@@ -52,7 +55,18 @@ const tree: FSNode = {
           icon: 'app',
           created: '2024-06-01',
           meta: [['Status', 'shipped']],
-          open: { app: 'project', props: { title: 'SpeakEasy' } },
+          open: {
+            app: 'project',
+            props: {
+              title: 'SpeakEasy',
+              oneLiner: 'talks better',
+              stack: ['TypeScript'],
+              status: 'shipped',
+              created: '2024-06-01',
+              imageUrls: [],
+              bodyHtml: '<p>case study body</p>',
+            },
+          },
         },
       ],
     },
@@ -100,7 +114,11 @@ test('Finder renders folder columns and a preview pane for a selected file', asy
   expect(target.querySelectorAll('.column').length).toBe(2);
   const text = target.textContent ?? '';
   expect(text).toContain('speakeasy.app');
+  // Projects read inline in the preview pane: status, one-liner, and the
+  // case-study body are all visible without opening a window.
   expect(text).toContain('shipped');
+  expect(text).toContain('talks better');
+  expect(text).toContain('case study body');
 
   unmount(app);
   target.remove();

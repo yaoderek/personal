@@ -9,6 +9,8 @@
     reducedMotion: boolean;
     ontogglereducedmotion: () => void;
     isMobile?: boolean;
+    darkMode?: boolean;
+    ontoggledark?: () => void;
   };
 
   let {
@@ -19,6 +21,8 @@
     reducedMotion,
     ontogglereducedmotion,
     isMobile = false,
+    darkMode = false,
+    ontoggledark,
   }: Props = $props();
 
   // Which menu is open: null | 'apple' | 'file' | 'view'
@@ -176,10 +180,14 @@
         aria-expanded={openMenu === 'apple'}
         onclick={() => toggleMenu('apple')}
         onmouseenter={() => hoverMenu('apple')}
-        aria-label="Apple menu"
+        aria-label="Orange menu"
       >
-        <svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor" aria-hidden="true">
-          <path d="M10.8 7.9c0-1.8 1.5-2.7 1.6-2.7-0.9-1.3-2.2-1.4-2.7-1.4-1.1-0.1-2.2 0.7-2.8 0.7s-1.5-0.6-2.5-0.6C3 3.9 1.6 4.8 0.8 6.2c-1.5 2.6-0.4 6.5 1.1 8.6 0.7 1 1.5 2.1 2.6 2.1s1.5-0.7 2.8-0.7 1.6 0.7 2.7 0.6c1.1 0 1.9-1 2.6-2 0.8-1.1 1.1-2.2 1.2-2.3-0.1 0-2-0.8-2-3.6zM8.9 2.4c0.6-0.7 1-1.7 0.9-2.7-0.9 0-1.9 0.6-2.6 1.3-0.5 0.6-1 1.6-0.9 2.5 1 0.1 2-0.5 2.6-1.1z"/>
+        <!-- The house glyph: an orange, drawn Apple-logo-style (solid
+             silhouette with a detached leaf). -->
+        <svg width="14" height="15" viewBox="0 0 14 15" fill="currentColor" aria-hidden="true">
+          <circle cx="7" cy="9" r="5.4" />
+          <path d="M7.3 3.4 C7.3 2 8.4 0.9 10.2 0.8 C10.2 2.3 9.1 3.4 7.3 3.4 Z" />
+          <rect x="6.7" y="2.2" width="0.9" height="1.6" rx="0.45" />
         </svg>
       </button>
       {#if openMenu === 'apple'}
@@ -281,8 +289,39 @@
     </div>
   {/if}
 
-  <!-- Right side: clock -->
+  <!-- Right side: dark-mode toggle + clock -->
   <div class="right">
+    {#if !isMobile}
+      <button
+        class="menu-title theme-btn"
+        aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={darkMode ? 'Light mode' : 'Dark mode'}
+        aria-pressed={darkMode}
+        onclick={() => ontoggledark?.()}
+      >
+        {#if darkMode}
+          <!-- Sun -->
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="3" />
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round">
+              <line x1="6.5" y1="0.5" x2="6.5" y2="2" />
+              <line x1="6.5" y1="11" x2="6.5" y2="12.5" />
+              <line x1="0.5" y1="6.5" x2="2" y2="6.5" />
+              <line x1="11" y1="6.5" x2="12.5" y2="6.5" />
+              <line x1="2.3" y1="2.3" x2="3.3" y2="3.3" />
+              <line x1="9.7" y1="9.7" x2="10.7" y2="10.7" />
+              <line x1="2.3" y1="10.7" x2="3.3" y2="9.7" />
+              <line x1="9.7" y1="3.3" x2="10.7" y2="2.3" />
+            </g>
+          </svg>
+        {:else}
+          <!-- Crescent moon -->
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+            <path d="M10.9 8.6 A5 5 0 1 1 4.4 2.1 A4 4 0 0 0 10.9 8.6 Z" />
+          </svg>
+        {/if}
+      </button>
+    {/if}
     <span class="clock" aria-live="polite" aria-label="Current time">{clockStr}</span>
   </div>
 </div>
@@ -298,7 +337,7 @@
     align-items: center;
     gap: 0;
     padding: 0 4px;
-    background: rgba(250, 250, 250, 0.72);
+    background: var(--bar-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 0.5px solid var(--hairline);
@@ -329,7 +368,7 @@
 
   .menu-title:hover,
   .menu-title.open {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--hover-dim);
   }
 
   .owner-btn {
@@ -364,7 +403,7 @@
     margin: 0;
     padding: 4px 0;
     list-style: none;
-    background: rgba(250, 250, 250, 0.9);
+    background: var(--menu-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 6px;
