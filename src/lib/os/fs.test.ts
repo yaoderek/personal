@@ -176,6 +176,14 @@ describe('buildTree', () => {
     expect(article.blurb).toBe('Design is intention made visible.');
   });
 
+  it('writing node name is slug.txt (spec IA: rue.txt)', () => {
+    const writingFolder = root.children!.find((c) => c.name === 'writing')!;
+    const article = writingFolder.children!.find((c) => c.name === 'on-design.txt')!;
+    expect(article).toBeDefined();
+    // path stays extensionless
+    expect(article.path).toBe('/writing/on-design');
+  });
+
   it('art node has kind "PNG image" with correct meta dimensions', () => {
     const painting = findNode(root, '/art/painting-001')!;
     expect(painting).not.toBeNull();

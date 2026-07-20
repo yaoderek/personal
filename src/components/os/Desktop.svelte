@@ -51,10 +51,6 @@
 
   let wins = $state<Win[]>([]);
 
-  // Set while handling a popstate event so the URL-sync $effect does not push a
-  // duplicate history entry for a navigation the browser already performed.
-  let syncingFromPop = false;
-
   // Finder view state — consumed by the Finder component.
   let finderView = $state<'columns' | 'list'>('columns');
 
@@ -213,10 +209,9 @@
       if (notFound) openNotFound();
     }
 
-    // Back/forward navigation drives the window manager (never the reverse
-    // while handling this event — syncingFromPop guards the $effect).
+    // Back/forward navigation drives the window manager. The URL-sync $effect's
+    // equality check (desired !== location.pathname) prevents duplicate pushState.
     const onPopState = () => {
-      syncingFromPop = true;
       const target = urlToOpenPath(location.pathname);
       if (isMobile) {
         // On mobile: signal MobileFiles to navigate.
@@ -229,7 +224,6 @@
           openPath('/');
         }
       }
-      syncingFromPop = false;
     };
     window.addEventListener('popstate', onPopState);
     return () => {
@@ -247,7 +241,7 @@
     const desired = pathForWin(topWindow(wins));
     // On the 404 page, leave the (unknown) URL untouched so it stays shareable
     // as the "not found" address the visitor actually hit.
-    if (!notFound && !syncingFromPop && desired !== location.pathname) {
+    if (!notFound && desired !== location.pathname) {
       history.pushState({}, '', desired);
     }
   });
@@ -311,8 +305,9 @@
   });
 
   // Mobile URL sync: push the current FS path to history when user navigates.
+  // The equality check (url !== location.pathname) prevents duplicate pushState
+  // during popstate-driven navigation.
   function onMobileNavigate(path: string) {
-    if (syncingFromPop) return;
     // Map the FS path to a routable URL: internal/root-level paths → '/'.
     const url = fsPathToUrl(path);
     if (url !== location.pathname) {

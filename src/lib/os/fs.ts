@@ -99,7 +99,7 @@ export function buildTree(input: TreeInput): FSNode {
         ['Words', String(wc)],
       ];
       return {
-        name: w.slug,
+        name: `${w.slug}.txt`,
         path: `/writing/${w.slug}`,
         kind: 'Plain Text',
         icon: 'doc',
