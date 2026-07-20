@@ -509,7 +509,7 @@
     pointer-events: none;
   }
 
-  .windows-layer :global(*) {
+  .windows-layer > :global(*) {
     pointer-events: auto;
   }
 
