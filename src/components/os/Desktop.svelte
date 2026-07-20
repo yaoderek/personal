@@ -3,6 +3,7 @@
   import type { FSNode, AppId } from '../../lib/os/types';
   import type { Win } from '../../lib/os/windows';
   import { findNode } from '../../lib/os/fs';
+  import { onMount } from 'svelte';
   import {
     open,
     close,
@@ -86,7 +87,7 @@
     }
   }
 
-  $effect(() => {
+  onMount(() => {
     // Open Finder at root on mount, then any deep-linked path.
     openPath('/');
     if (initialPath) openPath(initialPath);
