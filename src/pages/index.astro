@@ -1,7 +1,52 @@
 ---
+import fs from 'node:fs';
+import { getCollection, render } from 'astro:content';
+import { getTreeInput } from '../lib/os/tree-data';
+import { buildTree } from '../lib/os/fs';
+import Desktop from '../components/os/Desktop.svelte';
 import '../styles/global.css';
+
+// Render every markdown body to an HTML string for the client island.
+// `render(entry)` runs the pipeline; the resulting HTML string is exposed
+// through `entry.rendered.html` (populated by the content loader).
+const rendered: Record<string, string> = {};
+
+const projects = await getCollection('projects');
+const writing = await getCollection('writing');
+
+for (const entry of projects) {
+  await render(entry);
+  rendered[`projects/${entry.id}`] = entry.rendered?.html ?? '';
+}
+for (const entry of writing) {
+  await render(entry);
+  rendered[`writing/${entry.id}`] = entry.rendered?.html ?? '';
+}
+
+const input = await getTreeInput(rendered);
+const tree = buildTree(input);
+const showResume = fs.existsSync('public/resume.pdf');
 ---
-<html lang="en"><head><meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Derek Yao</title></head>
-<body><p>derekOS boot placeholder</p></body></html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Derek Yao — projects, writing, art." />
+    <title>Derek Yao</title>
+  </head>
+  <body>
+    <Desktop client:only="svelte" tree={tree} showResume={showResume} />
+  </body>
+</html>
+
+<style is:global>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+</style>
