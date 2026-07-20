@@ -333,8 +333,9 @@
   }
 
   .owner-btn {
-    font-family: var(--pixel-font);
+    font-family: var(--chrome-font);
     font-size: 13px;
+    font-weight: 700;
   }
 
   .apple-btn {

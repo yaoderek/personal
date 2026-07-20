@@ -5,6 +5,7 @@ import OsPage from '../../layouts/OsPage.astro';
 const projects = (await getCollection('projects')).sort(
   (a, b) => b.data.created.getTime() - a.data.created.getTime()
 );
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <OsPage
@@ -13,11 +14,11 @@ const projects = (await getCollection('projects')).sort(
   description="Things Derek Yao has built — web apps, tools, and experiments."
 >
   <h1>Projects</h1>
-  <p><a href="/">← derek's mac</a></p>
+  <p><a href={`${base}/`}>← derek's mac</a></p>
   <ul>
     {projects.map((p) => (
       <li>
-        <a href={`/projects/${p.id}`}>{p.data.title}</a> — {p.data.oneLiner}
+        <a href={`${base}/projects/${p.id}`}>{p.data.title}</a> — {p.data.oneLiner}
       </li>
     ))}
   </ul>

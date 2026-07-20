@@ -101,6 +101,32 @@ export function fsPathToUrl(path: string): string {
 }
 
 /**
+ * Prefix a site-root-relative URL with the deploy base path (e.g. '/personal'
+ * on a GitHub Pages project site). `base` is import.meta.env.BASE_URL, which
+ * may or may not carry a trailing slash. With no base ('/'), the URL passes
+ * through unchanged. '/' maps to '<base>/'.
+ */
+export function withBase(url: string, base: string): string {
+  const nb = base.replace(/\/+$/, '');
+  if (!nb) return url;
+  return url === '/' ? `${nb}/` : `${nb}${url}`;
+}
+
+/**
+ * Inverse of withBase: strip the deploy base from a location.pathname so the
+ * result is a site-root-relative URL ('/personal/projects' -> '/projects',
+ * '/personal' or '/personal/' -> '/'). Pathnames outside the base pass
+ * through unchanged.
+ */
+export function stripBase(pathname: string, base: string): string {
+  const nb = base.replace(/\/+$/, '');
+  if (!nb) return pathname;
+  if (pathname === nb) return '/';
+  if (pathname.startsWith(`${nb}/`)) return pathname.slice(nb.length) || '/';
+  return pathname;
+}
+
+/**
  * Map a legacy hash fragment (from an older single-page version of the site)
  * to a filesystem/URL path.
  *

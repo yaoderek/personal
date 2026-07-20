@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import OsPage from '../../layouts/OsPage.astro';
 
 const art = await getCollection('art');
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <OsPage
@@ -12,11 +13,11 @@ const art = await getCollection('art');
   description="A gallery of digital art by Derek Yao."
 >
   <h1>Art</h1>
-  <p><a href="/">← derek's mac</a></p>
+  <p><a href={`${base}/`}>← derek's mac</a></p>
   <div class="grid">
     {art.map((piece) => (
       <figure>
-        <a href={`/art/${piece.data.id}`}>
+        <a href={`${base}/art/${piece.data.id}`}>
           <Image
             src={piece.data.image}
             alt={piece.data.title}

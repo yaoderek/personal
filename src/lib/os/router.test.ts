@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { pathForWin, urlToOpenPath, legacyHashToPath, fsPathToUrl } from './router';
+import {
+  pathForWin,
+  urlToOpenPath,
+  legacyHashToPath,
+  fsPathToUrl,
+  withBase,
+  stripBase,
+} from './router';
 
 describe('pathForWin', () => {
   it('returns "/" for null (no window)', () => {
@@ -180,5 +187,55 @@ describe('legacyHashToPath', () => {
 
   it('returns null for an empty hash', () => {
     expect(legacyHashToPath('')).toBeNull();
+  });
+});
+
+describe('withBase', () => {
+  it('passes URLs through when base is "/"', () => {
+    expect(withBase('/projects/speakeasy', '/')).toBe('/projects/speakeasy');
+    expect(withBase('/', '/')).toBe('/');
+  });
+
+  it('prefixes URLs with a project base (trailing slash on base)', () => {
+    expect(withBase('/projects/speakeasy', '/personal/')).toBe(
+      '/personal/projects/speakeasy'
+    );
+  });
+
+  it('prefixes URLs with a project base (no trailing slash on base)', () => {
+    expect(withBase('/projects', '/personal')).toBe('/personal/projects');
+  });
+
+  it('maps root to "<base>/"', () => {
+    expect(withBase('/', '/personal/')).toBe('/personal/');
+  });
+});
+
+describe('stripBase', () => {
+  it('passes pathnames through when base is "/"', () => {
+    expect(stripBase('/projects/speakeasy', '/')).toBe('/projects/speakeasy');
+    expect(stripBase('/', '/')).toBe('/');
+  });
+
+  it('strips a project base', () => {
+    expect(stripBase('/personal/projects/speakeasy', '/personal/')).toBe(
+      '/projects/speakeasy'
+    );
+  });
+
+  it('maps bare base (with or without trailing slash) to "/"', () => {
+    expect(stripBase('/personal', '/personal/')).toBe('/');
+    expect(stripBase('/personal/', '/personal/')).toBe('/');
+  });
+
+  it('leaves pathnames outside the base untouched', () => {
+    expect(stripBase('/elsewhere/thing', '/personal/')).toBe('/elsewhere/thing');
+  });
+
+  it('round-trips with withBase', () => {
+    expect(stripBase(withBase('/art/art-04', '/personal/'), '/personal/')).toBe(
+      '/art/art-04'
+    );
+    expect(stripBase(withBase('/', '/personal/'), '/personal/')).toBe('/');
   });
 });

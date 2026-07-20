@@ -1,9 +1,15 @@
 <script lang="ts">
-  import wallpaper from '../../assets/wallpaper.svg';
   import type { FSNode, AppId } from '../../lib/os/types';
   import type { Win } from '../../lib/os/windows';
   import { findNode } from '../../lib/os/fs';
-  import { pathForWin, urlToOpenPath, legacyHashToPath, fsPathToUrl } from '../../lib/os/router';
+  import {
+    pathForWin,
+    urlToOpenPath,
+    legacyHashToPath,
+    fsPathToUrl,
+    withBase,
+    stripBase,
+  } from '../../lib/os/router';
   import { onMount, tick, type ComponentProps } from 'svelte';
   import {
     open,
@@ -33,9 +39,21 @@
     showResume: boolean;
     // When true, open a "file not found" doc window after mount (404 page).
     notFound?: boolean;
+    // Optimized wallpaper URL (built by OsPage via astro:assets).
+    wallpaperUrl?: string | null;
   };
 
-  let { tree, initialPath = null, showResume, notFound = false }: Props = $props();
+  let {
+    tree,
+    initialPath = null,
+    showResume,
+    notFound = false,
+    wallpaperUrl = null,
+  }: Props = $props();
+
+  // Deploy base path ('/' locally, '/personal/' on a GitHub Pages project
+  // site). All history reads/writes go through withBase/stripBase with this.
+  const BASE = import.meta.env.BASE_URL ?? '/';
 
   // Compute the effective initial path eagerly at component-init time (not in
   // onMount) so MobileFiles can receive it as a prop on first render.
@@ -178,7 +196,7 @@
         props: {
           title: 'file not found',
           html: `<p>The file you're looking for was moved, deleted, or never existed.</p>
-<p>▸ <a href="/">back to derek's mac</a></p>`,
+<p>▸ <a href="${withBase('/', BASE)}">back to derek's mac</a></p>`,
         },
         w: SIZES.doc.w,
         h: SIZES.doc.h,
@@ -196,7 +214,7 @@
     // effectiveInitialPath in sync. The eager init above already computed the
     // right value for MobileFiles; here we only need the history side-effect.
     if (_hashMapped !== null) {
-      history.replaceState({}, '', _hashMapped);
+      history.replaceState({}, '', withBase(_hashMapped, BASE));
       // Re-assign in case the component mounted in mobile mode after isMobile
       // resolved (rare, but keeps the $state consistent).
       effectiveInitialPath = _hashMapped === '/' ? null : _hashMapped;
@@ -212,7 +230,7 @@
     // Back/forward navigation drives the window manager. The URL-sync $effect's
     // equality check (desired !== location.pathname) prevents duplicate pushState.
     const onPopState = () => {
-      const target = urlToOpenPath(location.pathname);
+      const target = urlToOpenPath(stripBase(location.pathname, BASE));
       if (isMobile) {
         // On mobile: signal MobileFiles to navigate.
         mobileNavigateTo = target ?? '/';
@@ -238,7 +256,7 @@
   // Skipped on mobile — MobileFiles drives URL via onnavigate callback instead.
   $effect(() => {
     if (isMobile) return;
-    const desired = pathForWin(topWindow(wins));
+    const desired = withBase(pathForWin(topWindow(wins)), BASE);
     // On the 404 page, leave the (unknown) URL untouched so it stays shareable
     // as the "not found" address the visitor actually hit.
     if (!notFound && desired !== location.pathname) {
@@ -309,7 +327,7 @@
   // during popstate-driven navigation.
   function onMobileNavigate(path: string) {
     // Map the FS path to a routable URL: internal/root-level paths → '/'.
-    const url = fsPathToUrl(path);
+    const url = withBase(fsPathToUrl(path), BASE);
     if (url !== location.pathname) {
       history.pushState({}, '', url);
     }
@@ -336,7 +354,7 @@
       ? [{
           id: 'resume',
           label: 'Résumé',
-          action: () => window.open('/resume.pdf', '_blank', 'noopener'),
+          action: () => window.open(withBase('/resume.pdf', BASE), '_blank', 'noopener'),
         }]
       : []),
     {
@@ -373,7 +391,10 @@
   ];
 </script>
 
-<div class="desktop" style:background-image={`url(${wallpaper})`}>
+<div
+  class="desktop"
+  style:background-image={wallpaperUrl ? `url(${wallpaperUrl})` : undefined}
+>
   <!-- Skip-to-content: visually hidden until focused, then revealed.
        Targets the top window (or no-js noscript content on SEO pages). -->
   <a
@@ -492,6 +513,8 @@
     position: fixed;
     inset: 0;
     overflow: hidden;
+    /* Fallback while the wallpaper image loads (deep Big Sur indigo). */
+    background-color: #1a2151;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;

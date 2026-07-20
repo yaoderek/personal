@@ -30,19 +30,24 @@ npm test          # run unit tests
 
 ## Hosting
 
-### GitHub Pages
+### GitHub Pages (configured)
 
-A deploy workflow lives at `.github/workflows/deploy.yml`. To activate it:
+The site is configured as a GitHub Pages **project site** at
+`https://yaoderek.github.io/personal/` — `astro.config.mjs` sets
+`site: 'https://yaoderek.github.io'` and `base: '/personal'`, and all internal
+links and client-side routing are base-aware (via `withBase`/`stripBase` in
+`src/lib/os/router.ts` and `import.meta.env.BASE_URL` in pages).
 
-1. Set `site: 'https://<your-username>.github.io'` in `astro.config.mjs` (or your custom domain).
-2. In GitHub repo Settings → Pages, set source to **GitHub Actions**.
+Deploys run from `.github/workflows/deploy.yml` on every push to `main`.
+One-time setup: in GitHub repo **Settings → Pages**, set source to
+**GitHub Actions**.
 
-> **Note:** If deployed as a project page (`github.io/personal/`), you will need to add `base: '/personal'` to `astro.config.mjs` and all internal links will need the base prefix. The workflow does not set a base — add it manually if needed.
+### Moving to a custom domain later
+
+1. Change `site` in `astro.config.mjs` to the domain and **remove `base`**.
+2. Add the domain in Settings → Pages (GitHub writes the CNAME).
 
 ### Netlify / Vercel
 
-Point your provider at:
-- **Build command:** `npm run build`
-- **Publish directory:** `dist`
-
-Set `site:` in `astro.config.mjs` to your production URL so canonical and og:url tags are emitted correctly.
+Point your provider at build command `npm run build`, publish directory
+`dist`; set `site` to your production URL and remove `base`.

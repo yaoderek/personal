@@ -17,6 +17,7 @@ const { Content } = await render(entry);
 
 const description = firstSentence(stripHtml(entry.rendered?.html ?? ''));
 const dateIso = data.created.toISOString().slice(0, 10);
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <OsPage
@@ -25,7 +26,7 @@ const dateIso = data.created.toISOString().slice(0, 10);
   description={description}
 >
   <article>
-    <p><a href="/writing">← writing</a></p>
+    <p><a href={`${base}/writing`}>← writing</a></p>
     <h1>{data.title}</h1>
     <p><time datetime={dateIso}>{formatDate(dateIso)}</time></p>
     <Content />

@@ -252,8 +252,9 @@
     left: 0;
     right: 0;
     text-align: center;
-    font-family: var(--pixel-font);
+    font-family: var(--chrome-font);
     font-size: 13px;
+    font-weight: 600;
     color: var(--text);
     pointer-events: none;
     white-space: nowrap;

@@ -1,14 +1,9 @@
 @import '@fontsource-variable/newsreader';
 
-@font-face {
-  font-family: 'ChicagoFLF';
-  src: url('/fonts/ChicagoFLF.ttf') format('truetype');
-  font-display: swap;
-}
-
 :root {
+  /* Big Sur register: San Francisco on Apple devices (-apple-system),
+     Helvetica/Arial elsewhere. */
   --chrome-font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --pixel-font: 'ChicagoFLF', var(--chrome-font);
   --serif-font: 'Newsreader Variable', Georgia, serif;
   --accent: #0064e1;
   --win-bg: #f5f5f4;

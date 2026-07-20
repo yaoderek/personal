@@ -1,5 +1,7 @@
 ---
 import OsPage from '../layouts/OsPage.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <OsPage
@@ -16,9 +18,9 @@ import OsPage from '../layouts/OsPage.astro';
   </p>
   <p>This site is a fake little Mac. The good stuff lives in:</p>
   <ul>
-    <li><a href="/projects">/projects</a> — things I've built</li>
-    <li><a href="/writing">/writing</a> — notes and essays</li>
-    <li><a href="/art">/art</a> — pictures</li>
+    <li><a href={`${base}/projects`}>/projects</a> — things I've built</li>
+    <li><a href={`${base}/writing`}>/writing</a> — notes and essays</li>
+    <li><a href={`${base}/art`}>/art</a> — pictures</li>
   </ul>
   <ul>
     <li><a href="mailto:yaoderek06@gmail.com">yaoderek06@gmail.com</a></li>

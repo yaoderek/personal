@@ -5,7 +5,7 @@
 <div class="about">
   <h1 class="title">derekOS</h1>
   <p class="body-line">A fake little Mac, as a personal website.</p>
-  <p class="body-line">Built with Astro + Svelte. Type set in Chicago and Newsreader.</p>
+  <p class="body-line">Built with Astro + Svelte. Type set in San Francisco and Newsreader.</p>
   <p class="body-line link-line">
     <a
       href="https://github.com/yaoderek"
@@ -29,9 +29,9 @@
   }
 
   .title {
-    font-family: var(--pixel-font);
+    font-family: var(--chrome-font);
     font-size: 22px;
-    font-weight: normal;
+    font-weight: 700;
     margin: 0 0 8px;
     color: var(--text);
   }

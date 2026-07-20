@@ -153,9 +153,9 @@
   }
 
   .title {
-    font-family: var(--pixel-font);
+    font-family: var(--chrome-font);
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 700;
     color: var(--text);
     margin: 0;
     line-height: 1.2;

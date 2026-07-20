@@ -1,5 +1,7 @@
 ---
 import OsPage from '../../layouts/OsPage.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <OsPage
@@ -8,6 +10,6 @@ import OsPage from '../../layouts/OsPage.astro';
   description="Photos and everyday moments — coming soon."
 >
   <h1>Life</h1>
-  <p><a href="/">← derek's mac</a></p>
+  <p><a href={`${base}/`}>← derek's mac</a></p>
   <p>Photos are coming soon.</p>
 </OsPage>

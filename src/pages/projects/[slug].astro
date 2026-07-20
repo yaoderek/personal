@@ -19,6 +19,8 @@ const { Content } = await render(entry);
 const thumb = await getImage({ src: data.thumb, width: 1200, format: 'webp' });
 const ogImage = thumb.src;
 
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
 const meta: [string, string][] = [
   ['Stack', data.stack.join(', ')],
   ['Status', data.status],
@@ -33,7 +35,7 @@ const meta: [string, string][] = [
   ogImage={ogImage}
 >
   <article>
-    <p><a href="/projects">← projects</a></p>
+    <p><a href={`${base}/projects`}>← projects</a></p>
     <h1>{data.title}</h1>
     <p><em>{data.oneLiner}</em></p>
     <dl>
