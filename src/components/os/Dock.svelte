@@ -1,6 +1,7 @@
 <script lang="ts">
   import { magnify } from '../../lib/os/dock';
   import type { Win } from '../../lib/os/windows';
+  import { onDestroy } from 'svelte';
 
   type DockItem = {
     id: string;
@@ -28,16 +29,25 @@
   let visible = $state(isTouch);
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // Fix 1: clear pending hide timer on destroy to avoid leak
+  onDestroy(() => {
+    if (hideTimer !== null) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+  });
+
   // Per-icon scale (keyed by index across all sections)
   // sections: items + minimized + trailing
-  function totalCount() {
-    return items.length + minimized.length + trailing.length;
-  }
+  // Fix 3: derive count reactively so new minimized icons always have a scale slot
+  const totalCount = $derived(items.length + minimized.length + trailing.length);
 
-  let scales = $state<number[]>(Array(totalCount()).fill(1));
+  let scales = $state<number[]>([]);
 
-  // Icon element refs for center-X measurement
-  let iconRefs = $state<(HTMLElement | null)[]>(Array(totalCount()).fill(null));
+  // Icon element refs for center-X measurement — plain mutable array populated by
+  // bind:this={iconRefs[idx]} in the template. Not $state; Svelte updates these
+  // bindings each render so stale slots are naturally overwritten.
+  let iconRefs: (HTMLElement | null)[] = [];
 
   // Dock container ref
   let dockEl = $state<HTMLElement | null>(null);
@@ -69,12 +79,12 @@
   function onDockLeave() {
     if (!isTouch) scheduledHide();
     // Also reset magnification scales
-    scales = Array(totalCount()).fill(1);
+    scales = Array(totalCount).fill(1);
   }
 
   function onDockPointerMove(e: PointerEvent) {
     if (reducedMotion || isTouch) return;
-    const newScales = Array(totalCount()).fill(1);
+    const newScales = Array(totalCount).fill(1);
     iconRefs.forEach((ref, i) => {
       if (!ref) return;
       const rect = ref.getBoundingClientRect();
@@ -203,21 +213,6 @@
               <circle cx="25" cy="20" r="1.5" fill="#24292f"/>
               <path d="M19 24 Q22 26 25 24" stroke="#24292f" stroke-width="1" fill="none" stroke-linecap="round"/>
             </svg>
-          {:else if item.id === 'trash'}
-            <!-- Trash: light gray square, wire basket -->
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-              <rect width="44" height="44" rx="9.68" fill="#e0e0e5"/>
-              <!-- Lid -->
-              <rect x="10" y="13" width="24" height="3.5" rx="1.5" fill="#a0a0aa"/>
-              <!-- Handle on lid -->
-              <rect x="18" y="9.5" width="8" height="4" rx="2" fill="none" stroke="#a0a0aa" stroke-width="1.5"/>
-              <!-- Body of basket -->
-              <path d="M12 17 L14 36 Q14 38 16 38 H28 Q30 38 30 36 L32 17 Z" fill="#b8b8c2"/>
-              <!-- Vertical lines on basket -->
-              <line x1="19" y1="20" x2="18" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-              <line x1="22" y1="20" x2="22" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-              <line x1="25" y1="20" x2="26" y2="36" stroke="#a0a0aa" stroke-width="1"/>
-            </svg>
           {/if}
           <span class="tooltip">{item.label}</span>
         </button>
@@ -318,7 +313,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    z-index: 10001;
+    z-index: 9999;
     pointer-events: auto;
   }
 
@@ -328,7 +323,7 @@
     bottom: 8px;
     left: 50%;
     translate: -50% 0;
-    z-index: 10000;
+    z-index: 9998;
     pointer-events: none;
     /* Hidden by default: slide below viewport */
     transform: translateY(calc(100% + 12px));
