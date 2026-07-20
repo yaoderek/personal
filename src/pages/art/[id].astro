@@ -16,7 +16,7 @@ const { entry } = Astro.props;
 const { data } = entry;
 
 const optimized = await getImage({ src: data.image, width: 1200, format: 'webp' });
-const ogImage = new URL(optimized.src, Astro.url).href;
+const ogImage = optimized.src;
 const dateIso = data.created.toISOString().slice(0, 10);
 ---
 

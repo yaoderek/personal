@@ -17,7 +17,7 @@ const { data } = entry;
 const { Content } = await render(entry);
 
 const thumb = await getImage({ src: data.thumb, width: 1200, format: 'webp' });
-const ogImage = new URL(thumb.src, Astro.url).href;
+const ogImage = thumb.src;
 
 const meta: [string, string][] = [
   ['Stack', data.stack.join(', ')],
