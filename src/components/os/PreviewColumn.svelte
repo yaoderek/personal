@@ -16,6 +16,11 @@
   <div class="visual">
     {#if node.previewImage}
       <img class="thumb" src={node.previewImage} alt="" />
+    {:else if iconKind === 'doc' && node.blurb}
+      <!-- Text files preview as a tiny rendered page, like Finder thumbnails. -->
+      <div class="page-thumb" aria-hidden="true">
+        <p>{node.blurb}</p>
+      </div>
     {:else}
       <Icon kind={iconKind} size={48} thumb={node.previewImage ?? null} />
     {/if}
@@ -47,7 +52,7 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    padding: 16px 12px;
+    padding: 24px 20px;
     height: 100%;
     overflow-y: auto;
   }
@@ -57,15 +62,38 @@
     align-items: center;
     justify-content: center;
     min-height: 48px;
-    margin-top: 6px;
+    margin-top: 2%;
+    align-self: stretch;
   }
 
+  /* Preview scales with the pane now that it fills the remaining width. */
   .thumb {
-    max-width: 200px;
-    max-height: 140px;
+    max-width: min(78%, 480px);
+    max-height: 300px;
     object-fit: contain;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Tiny rendered page for text documents (README, writing). */
+  .page-thumb {
+    width: 124px;
+    height: 160px;
+    background: #fff;
+    border-radius: 3px;
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.2),
+      0 0 0 0.5px rgba(0, 0, 0, 0.08);
+    padding: 12px 10px;
+    overflow: hidden;
+  }
+
+  .page-thumb p {
+    margin: 0;
+    font-family: var(--serif-font);
+    font-size: 6.5px;
+    line-height: 1.55;
+    color: #3a3a3c;
   }
 
   .name {
@@ -110,7 +138,7 @@
     line-height: 1.45;
     margin: 2px 0 0;
     padding: 0 4px;
-    align-self: stretch;
+    max-width: 380px;
     display: -webkit-box;
     -webkit-line-clamp: 5;
     line-clamp: 5;

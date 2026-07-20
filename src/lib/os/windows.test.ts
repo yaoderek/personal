@@ -7,6 +7,9 @@ import {
   restore,
   toggleFullscreen,
   move,
+  resize,
+  MIN_W,
+  MIN_H,
   topWindow,
   type Win,
   type OpenSpec,
@@ -296,5 +299,44 @@ describe('move', () => {
     const origX = state[0].x;
     move(state, state[0].id, 999, 999);
     expect(state[0].x).toBe(origX);
+  });
+});
+
+describe('resize', () => {
+  const vp = { vw: 1440, vh: 900 };
+
+  it('updates the rect of the target window only', () => {
+    let s = open([], { app: 'doc', title: 'a' }, vp);
+    s = open(s, { app: 'doc', title: 'b' }, vp);
+    const other = { ...s[1] };
+    const out = resize(s, s[0].id, 100, 80, 800, 500);
+    expect(out[0]).toMatchObject({ x: 100, y: 80, w: 800, h: 500 });
+    expect(out[1]).toMatchObject({ x: other.x, y: other.y, w: other.w, h: other.h });
+  });
+
+  it('enforces minimum width and height', () => {
+    const s = open([], { app: 'doc', title: 'a' }, vp);
+    const out = resize(s, s[0].id, 100, 80, 10, 10);
+    expect(out[0].w).toBe(MIN_W);
+    expect(out[0].h).toBe(MIN_H);
+  });
+
+  it('keeps the window below the menu bar (y >= 24)', () => {
+    const s = open([], { app: 'doc', title: 'a' }, vp);
+    const out = resize(s, s[0].id, 100, 4, 800, 500);
+    expect(out[0].y).toBe(24);
+  });
+
+  it('is a no-op for an unknown id', () => {
+    const s = open([], { app: 'doc', title: 'a' }, vp);
+    const out = resize(s, 99999, 1, 1, 1, 1);
+    expect(out[0]).toMatchObject({ x: s[0].x, y: s[0].y, w: s[0].w, h: s[0].h });
+  });
+
+  it('does not mutate the input state', () => {
+    const s = open([], { app: 'doc', title: 'a' }, vp);
+    const before = { ...s[0] };
+    resize(s, s[0].id, 5, 50, 900, 600);
+    expect(s[0]).toMatchObject(before);
   });
 });

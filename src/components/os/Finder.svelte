@@ -397,11 +397,11 @@
     color: rgba(255, 255, 255, 0.85);
   }
 
+  /* The preview pane fills whatever space remains to the right, like macOS. */
   .preview-col {
-    flex: 0 0 240px;
-    width: 240px;
+    flex: 1 1 240px;
+    min-width: 240px;
     height: 100%;
-    border-right: 0.5px solid var(--hairline);
   }
 
   /* ---- list view ---- */

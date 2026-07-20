@@ -19,6 +19,7 @@
     restore,
     toggleFullscreen,
     move,
+    resize,
     topWindow,
   } from '../../lib/os/windows';
   import Window from './Window.svelte';
@@ -452,6 +453,8 @@
           onminimize={() => (wins = minimize(wins, win.id))}
           onfullscreen={() => (wins = toggleFullscreen(wins, win.id))}
           onmove={(x, y) => (wins = move(wins, win.id, x, y))}
+          onresize={(x, y, w, h) => (wins = resize(wins, win.id, x, y, w, h))}
+          {reducedMotion}
           onmounted={(el) => registerWindowEl(win.id, el)}
           onunmounted={() => unregisterWindowEl(win.id)}
         >

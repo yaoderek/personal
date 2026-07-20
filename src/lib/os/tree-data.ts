@@ -6,9 +6,6 @@ import type { FSNode, TreeInput } from './types';
 import { stripHtml } from './format';
 import { buildTree } from './fs';
 
-/** Deploy base path with no trailing slash ('' locally, '/personal' on Pages). */
-const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/+$/, '');
-
 /**
  * README content, authored as real HTML (injected via {@html} by the Doc app).
  */
@@ -19,8 +16,7 @@ const README_HTML = `<p>Hi, I'm Derek.</p>
   <div><dt>phone</dt><dd><a href="tel:+14255223218">425-522-3218</a></dd></div>
   <div><dt>github</dt><dd><a href="https://github.com/yaoderek">github.com/yaoderek</a></dd></div>
   <div><dt>linkedin</dt><dd><a href="https://linkedin.com/in/yaoderek">linkedin.com/in/yaoderek</a></dd></div>
-</dl>
-<p>thanks for stopping by — the good stuff is in <a href="${BASE}/projects">/projects</a>.</p>`;
+</dl>`;
 
 const README_CREATED = '2026-07-20';
 

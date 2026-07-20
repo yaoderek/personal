@@ -153,14 +153,18 @@ test('dock renders Finder label and restores minimized window via dock click', a
   // Dock should render the Finder label
   expect(target.textContent).toContain('Finder');
 
-  // Minimize the finder window via the yellow traffic light
+  // Minimize the finder window via the yellow traffic light. The minimize
+  // commits after a ~330ms flight animation, so poll for the dock button.
   const minimizeBtn = target.querySelector<HTMLButtonElement>('button.light.min');
   expect(minimizeBtn).not.toBeNull();
   minimizeBtn!.click();
-  await new Promise((r) => setTimeout(r, 20));
+  let restoreBtn: HTMLButtonElement | null = null;
+  for (let i = 0; i < 30 && !restoreBtn; i++) {
+    await new Promise((r) => setTimeout(r, 25));
+    restoreBtn = target.querySelector<HTMLButtonElement>('[data-restore-id]');
+  }
 
   // A restore button should now appear in the dock (minimized section)
-  const restoreBtn = target.querySelector<HTMLButtonElement>('[data-restore-id]');
   expect(restoreBtn).not.toBeNull();
 
   // Clicking it should restore: the restore button should disappear

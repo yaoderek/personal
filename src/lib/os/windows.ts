@@ -106,6 +106,30 @@ export function move(state: Win[], id: number, x: number, y: number): Win[] {
   return state.map((w) => (w.id === id ? { ...w, x, y } : w));
 }
 
+/** Minimum window dimensions enforced by resize(). */
+export const MIN_W = 360;
+export const MIN_H = 220;
+
+/**
+ * Set a window's rect. Edge-anchoring during a drag is the view's job; this
+ * reducer only enforces safety floors (minimum size, below the menu bar).
+ */
+export function resize(
+  state: Win[],
+  id: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+): Win[] {
+  const nw = Math.max(MIN_W, w);
+  const nh = Math.max(MIN_H, h);
+  const ny = Math.max(24, y);
+  return state.map((win) =>
+    win.id === id ? { ...win, x, y: ny, w: nw, h: nh } : win
+  );
+}
+
 export function topWindow(state: Win[]): Win | null {
   const visible = state.filter((w) => !w.minimized);
   if (visible.length === 0) return null;
