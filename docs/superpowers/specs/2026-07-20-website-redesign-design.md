@@ -66,7 +66,7 @@ Period-faithful macOS menu bar, personalized:
 - ** glyph** (or personal monogram) → "About this site" (a small window:
   colophon, what the site is built with).
 - **Derek Yao** (bold, app-name position) → opens README.txt.
-- **File** → Open Résumé (PDF), links to GitHub/LinkedIn.
+- **File** → links to GitHub/LinkedIn.
 - **View** → toggle Finder list/column view; toggle reduced motion.
 - **Right side:** live clock. Menus are real dropdowns with correct hover/
   click behavior.
@@ -84,8 +84,9 @@ content chrome stays gray/neutral so the wallpaper carries the color.
   neighbor-falloff curve.
 - Contents (each a real function, no filler): **Finder** (focuses/reopens the
   Finder window), **TextEdit** (opens `writing/`), **Photos** (opens `art/`),
-  **Mail** (mailto: link), **GitHub** (external), **Trash** (easter egg — a
-  couple of joke files). Minimized windows dock to the right of the divider.
+  **Résumé** (opens the résumé PDF), **Mail** (mailto: link), **GitHub**
+  (external), **Trash** (easter egg — a couple of joke files). Minimized
+  windows dock to the right of the divider.
 - On touch devices the dock is always visible (no hover on touch).
 
 ### Window manager
