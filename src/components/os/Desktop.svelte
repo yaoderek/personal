@@ -11,9 +11,11 @@
     minimize,
     toggleFullscreen,
     move,
+    topWindow,
   } from '../../lib/os/windows';
   import Window from './Window.svelte';
   import MenuBar from './MenuBar.svelte';
+  import Finder from './Finder.svelte';
   import AboutWindow from './apps/AboutWindow.svelte';
 
   type Props = {
@@ -29,8 +31,12 @@
 
   let wins = $state<Win[]>([]);
 
-  // Finder view state — Task 7 Finder will consume this.
+  // Finder view state — consumed by the Finder component.
   let finderView = $state<'columns' | 'list'>('columns');
+
+  // One-shot navigation signal: openPath sets this to a folder path; the Finder
+  // adopts it as its selection then calls onnavigated so we clear it back to null.
+  let finderNavigateTo = $state<string | null>(null);
 
   // Reduced motion state — initialised from matchMedia with jsdom guard.
   let reducedMotion = $state(
@@ -83,7 +89,8 @@
     const isFolder = node.kind === 'Folder' || node.path === '/';
     if (isFolder) {
       const { w, h } = SIZES.finder;
-      const initialSelection = node.path === '/' ? undefined : node.path;
+      const finderExists = wins.some((w) => w.app === 'finder');
+      const initialSelection = node.path === '/' ? '/README.txt' : node.path;
       wins = open(
         wins,
         {
@@ -96,6 +103,9 @@
         },
         viewport()
       );
+      // If the Finder window already existed, `open` only focuses it — drive its
+      // selection via the navigate signal so the folder becomes selected.
+      if (finderExists && node.path !== '/') finderNavigateTo = node.path;
     }
   }
 
@@ -131,10 +141,10 @@
     if (initialPath) openPath(initialPath);
   });
 
+  const topId = $derived(topWindow(wins)?.id ?? null);
+
   function activeId(): number | null {
-    const visible = wins.filter((w) => !w.minimized);
-    if (visible.length === 0) return null;
-    return visible.reduce((top, w) => (w.z > top.z ? w : top)).id;
+    return topId;
   }
 </script>
 
@@ -159,7 +169,16 @@
       onmove={(x, y) => (wins = move(wins, win.id, x, y))}
     >
       {#if win.app === 'finder'}
-        <p style="padding:16px">finder placeholder</p>
+        <Finder
+          {tree}
+          initialSelection={(win.props.initialSelection as string | undefined) ??
+            null}
+          view={finderView}
+          active={win.id === topId}
+          navigateTo={finderNavigateTo}
+          onopen={openPath}
+          onnavigated={() => (finderNavigateTo = null)}
+        />
       {:else if win.app === 'about'}
         <AboutWindow />
       {:else}
