@@ -13,6 +13,8 @@
     move,
   } from '../../lib/os/windows';
   import Window from './Window.svelte';
+  import MenuBar from './MenuBar.svelte';
+  import AboutWindow from './apps/AboutWindow.svelte';
 
   type Props = {
     tree: FSNode;
@@ -26,6 +28,16 @@
   void showResume;
 
   let wins = $state<Win[]>([]);
+
+  // Finder view state — Task 7 Finder will consume this.
+  let finderView = $state<'columns' | 'list'>('columns');
+
+  // Reduced motion state — initialised from matchMedia with jsdom guard.
+  let reducedMotion = $state(
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
+  );
 
   // Per-app default window sizes.
   const SIZES: Record<AppId, { w: number; h: number }> = {
@@ -87,6 +99,32 @@
     }
   }
 
+  /** Open the About window (no filesystem node needed). */
+  function openAbout() {
+    wins = open(
+      wins,
+      {
+        app: 'about',
+        title: 'About this site',
+        path: '/__about__',
+        props: {},
+        w: SIZES.about.w,
+        h: SIZES.about.h,
+      },
+      viewport()
+    );
+  }
+
+  /** Toggle finder view state. */
+  function toggleList(view: 'columns' | 'list') {
+    finderView = view;
+  }
+
+  /** Toggle reduced motion preference. */
+  function toggleReducedMotion() {
+    reducedMotion = !reducedMotion;
+  }
+
   onMount(() => {
     // Open Finder at root on mount, then any deep-linked path.
     openPath('/');
@@ -101,7 +139,14 @@
 </script>
 
 <div class="desktop" style:background-image={`url(${wallpaper})`}>
-  <div class="menubar-placeholder"></div>
+  <MenuBar
+    onopenpath={openPath}
+    onopenabout={openAbout}
+    ontogglelist={toggleList}
+    {finderView}
+    {reducedMotion}
+    ontogglereducedmotion={toggleReducedMotion}
+  />
 
   {#each wins as win (win.id)}
     <Window
@@ -115,6 +160,8 @@
     >
       {#if win.app === 'finder'}
         <p style="padding:16px">finder placeholder</p>
+      {:else if win.app === 'about'}
+        <AboutWindow />
       {:else}
         <pre style="padding:16px; overflow:auto; height:100%">{JSON.stringify(
             win.props,
@@ -134,18 +181,5 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-  }
-
-  .menubar-placeholder {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--menubar-h);
-    background: rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
-    z-index: 10000;
   }
 </style>
