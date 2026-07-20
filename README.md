@@ -23,9 +23,9 @@ npm test          # run unit tests
 
 | What | Where |
 |------|-------|
-| Writing posts | Drop a `.md` file in `src/content/writing/` (frontmatter: `title`, `date`, `description`) |
-| Projects | Drop a `.md` file in `src/content/projects/` (frontmatter: `title`, `description`, `thumb`, `year`) |
-| Art entries | Edit `src/content/art.yaml` |
+| Writing posts | Drop a `.md` file in `src/content/writing/` (frontmatter: `title`, `created`) |
+| Projects | Drop a `.md` file in `src/content/projects/` (frontmatter: `title`, `oneLiner`, `kind`, `status`, `created`, `stack` (array), `thumb`, `images` (array), optional `repo`, `demo`) |
+| Art entries | Edit `src/content/art.yaml` (fields: `id`, `title`, `created`, `medium`, `image`) |
 | Resume | Drop `public/resume.pdf` to enable the Résumé dock icon |
 
 ## Hosting
