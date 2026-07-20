@@ -3,7 +3,7 @@
   import type { FSNode, AppId } from '../../lib/os/types';
   import type { Win } from '../../lib/os/windows';
   import { findNode } from '../../lib/os/fs';
-  import { pathForWin, urlToOpenPath, legacyHashToPath } from '../../lib/os/router';
+  import { pathForWin, urlToOpenPath, legacyHashToPath, fsPathToUrl } from '../../lib/os/router';
   import { onMount, type ComponentProps } from 'svelte';
   import {
     open,
@@ -44,6 +44,7 @@
     typeof location !== 'undefined' ? legacyHashToPath(location.hash) : null;
   // $state so the template re-renders after onMount updates it (belt-and-suspenders;
   // the eager init means MobileFiles already has the right value on first mount).
+  // svelte-ignore state_referenced_locally
   let effectiveInitialPath = $state<string | null>(
     _hashMapped !== null ? (_hashMapped === '/' ? null : _hashMapped) : initialPath
   );
@@ -260,10 +261,8 @@
   // Mobile URL sync: push the current FS path to history when user navigates.
   function onMobileNavigate(path: string) {
     if (syncingFromPop) return;
-    // Derive the URL from the FS path (same logic as pathForWin but for mobile).
-    // For section folders like /projects we use the path directly;
-    // for root we use '/'; for items we use the path.
-    const url = path === '/' ? '/' : path;
+    // Map the FS path to a routable URL: internal/root-level paths → '/'.
+    const url = fsPathToUrl(path);
     if (url !== location.pathname) {
       history.pushState({}, '', url);
     }

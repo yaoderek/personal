@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pathForWin, urlToOpenPath, legacyHashToPath } from './router';
+import { pathForWin, urlToOpenPath, legacyHashToPath, fsPathToUrl } from './router';
 
 describe('pathForWin', () => {
   it('returns "/" for null (no window)', () => {
@@ -96,6 +96,44 @@ describe('urlToOpenPath', () => {
 
   it('returns null for too-deep paths', () => {
     expect(urlToOpenPath('/projects/speakeasy/extra')).toBeNull();
+  });
+});
+
+describe('fsPathToUrl', () => {
+  it('maps "/" to "/"', () => {
+    expect(fsPathToUrl('/')).toBe('/');
+  });
+
+  it('maps "/README.txt" to "/" (root-level file, not routable)', () => {
+    expect(fsPathToUrl('/README.txt')).toBe('/');
+  });
+
+  it('maps "/__trash__" to "/" (internal path)', () => {
+    expect(fsPathToUrl('/__trash__')).toBe('/');
+  });
+
+  it('maps "/__about__" to "/" (internal path)', () => {
+    expect(fsPathToUrl('/__about__')).toBe('/');
+  });
+
+  it('maps "/projects" to "/projects" (section folder)', () => {
+    expect(fsPathToUrl('/projects')).toBe('/projects');
+  });
+
+  it('maps "/projects/x" to "/projects/x" (section item)', () => {
+    expect(fsPathToUrl('/projects/x')).toBe('/projects/x');
+  });
+
+  it('maps "/writing/rue" to "/writing/rue" (writing item)', () => {
+    expect(fsPathToUrl('/writing/rue')).toBe('/writing/rue');
+  });
+
+  it('maps "/art/art-1" to "/art/art-1" (art item)', () => {
+    expect(fsPathToUrl('/art/art-1')).toBe('/art/art-1');
+  });
+
+  it('maps "/life" to "/life" (section folder)', () => {
+    expect(fsPathToUrl('/life')).toBe('/life');
   });
 });
 

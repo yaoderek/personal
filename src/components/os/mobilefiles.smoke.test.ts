@@ -102,6 +102,53 @@ test('MobileFiles: tapping a folder shows its children', async () => {
   target.remove();
 });
 
+test('MobileFiles: back from item view returns to folder listing (not empty)', async () => {
+  const target = document.createElement('div');
+  document.body.appendChild(target);
+  const navigated: string[] = [];
+  const app = mount(MobileFiles, {
+    target,
+    props: {
+      tree: fixtureTree,
+      onnavigate: (p: string) => navigated.push(p),
+    },
+  });
+  await new Promise((r) => setTimeout(r, 20));
+
+  // Navigate into projects folder
+  const projectsBtn = Array.from(target.querySelectorAll<HTMLButtonElement>('.file-btn'))
+    .find((b) => b.textContent?.includes('projects'));
+  projectsBtn!.click();
+  await new Promise((r) => setTimeout(r, 20));
+
+  // Navigate into speakeasy item
+  const speakeasyBtn = Array.from(target.querySelectorAll<HTMLButtonElement>('.file-btn'))
+    .find((b) => b.textContent?.includes('speakeasy'));
+  expect(speakeasyBtn).not.toBeUndefined();
+  speakeasyBtn!.click();
+  await new Promise((r) => setTimeout(r, 20));
+
+  // Should be in item view now — item-view div visible
+  expect(target.querySelector('.item-view')).not.toBeNull();
+
+  // Tap back from item view
+  const backBtn = target.querySelector<HTMLButtonElement>('.back-btn');
+  expect(backBtn).not.toBeNull();
+  backBtn!.click();
+  await new Promise((r) => setTimeout(r, 20));
+
+  // Should be back at the projects folder listing (speakeasy row visible, not empty)
+  const text = target.textContent ?? '';
+  expect(text).toContain('speakeasy.app');
+  // Item view should be gone
+  expect(target.querySelector('.item-view')).toBeNull();
+  // onnavigate should have fired with the parent folder path
+  expect(navigated[navigated.length - 1]).toBe('/projects');
+
+  unmount(app);
+  target.remove();
+});
+
 test('MobileFiles: back button returns to root', async () => {
   const target = document.createElement('div');
   document.body.appendChild(target);

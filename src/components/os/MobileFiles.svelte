@@ -163,9 +163,10 @@
     viewKey += 1;
 
     if (viewingItem) {
+      // Pop the item path off the stack, then stop viewing item.
+      stack = stack.slice(0, -1);
       viewingItem = false;
-      // stack stays, just stop viewing item
-      onnavigate?.(current === '/' ? '/' : stack[stack.length - 1]);
+      onnavigate?.(stack[stack.length - 1] ?? '/');
     } else {
       stack = stack.slice(0, -1);
       onnavigate?.(stack[stack.length - 1]);
@@ -203,49 +204,50 @@
   </div>
 
   <!-- Content -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="view-wrap"
-    class:push={animDir === 'push' && !reducedMotion}
-    class:pop={animDir === 'pop' && !reducedMotion}
-    data-view-key={viewKey}
-  >
-    {#if viewingItem}
-      {@const item = currentItem()}
-      {#if item?.open}
-        <div class="item-view">
-          {#if item.open.app === 'project'}
-            <ProjectWindow {...item.open.props as ComponentProps<typeof ProjectWindow>} />
-          {:else if item.open.app === 'doc'}
-            <DocWindow {...item.open.props as ComponentProps<typeof DocWindow>} />
-          {:else if item.open.app === 'gallery'}
-            <GalleryWindow
-              {...item.open.props as ComponentProps<typeof GalleryWindow>}
-              active={true}
-            />
-          {/if}
-        </div>
+  {#key viewKey}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="view-wrap"
+      class:push={animDir === 'push' && !reducedMotion}
+      class:pop={animDir === 'pop' && !reducedMotion}
+    >
+      {#if viewingItem}
+        {@const item = currentItem()}
+        {#if item?.open}
+          <div class="item-view">
+            {#if item.open.app === 'project'}
+              <ProjectWindow {...item.open.props as ComponentProps<typeof ProjectWindow>} />
+            {:else if item.open.app === 'doc'}
+              <DocWindow {...item.open.props as ComponentProps<typeof DocWindow>} />
+            {:else if item.open.app === 'gallery'}
+              <GalleryWindow
+                {...item.open.props as ComponentProps<typeof GalleryWindow>}
+                active={true}
+              />
+            {/if}
+          </div>
+        {/if}
+      {:else}
+        <ul class="file-list" role="list">
+          {#each folderChildren() as node (node.path)}
+            <li class="file-row" role="listitem">
+              <button
+                class="file-btn"
+                onclick={() => openChild(node)}
+                aria-label={node.name}
+              >
+                <span class="file-icon">
+                  <Icon kind={node.icon as 'folder' | 'doc' | 'app' | 'image'} size={28} thumb={(node.open?.props?.thumbUrl as string | undefined) ?? null} />
+                </span>
+                <span class="file-name">{node.name}</span>
+                <span class="file-chevron" aria-hidden="true">›</span>
+              </button>
+            </li>
+          {/each}
+        </ul>
       {/if}
-    {:else}
-      <ul class="file-list" role="list">
-        {#each folderChildren() as node (node.path)}
-          <li class="file-row" role="listitem">
-            <button
-              class="file-btn"
-              onclick={() => openChild(node)}
-              aria-label={node.name}
-            >
-              <span class="file-icon">
-                <Icon kind={node.icon as 'folder' | 'doc' | 'app' | 'image'} size={28} thumb={(node.open?.props?.thumbUrl as string | undefined) ?? null} />
-              </span>
-              <span class="file-name">{node.name}</span>
-              <span class="file-chevron" aria-hidden="true">›</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </div>
+    </div>
+  {/key}
 </div>
 
 <style>

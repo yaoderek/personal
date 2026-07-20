@@ -70,6 +70,37 @@ export function urlToOpenPath(pathname: string): string | null {
 }
 
 /**
+ * Map a filesystem path to a shareable URL path for use in history.pushState
+ * on mobile. Paths that are not publicly routable (root-level files like
+ * /README.txt, internal paths like /__trash__) map to '/'. Section folders
+ * (/projects, /writing, etc.) and section items (/projects/speakeasy) pass
+ * through as-is. '/' maps to '/'.
+ *
+ * This is the mobile equivalent of pathForWin for desktop windows.
+ */
+export function fsPathToUrl(path: string): string {
+  if (!path || path === '/') return '/';
+
+  // Internal paths.
+  if (path.startsWith('/__')) return '/';
+
+  const parts = path.split('/').filter(Boolean);
+
+  // Section index: /projects, /writing, /art, /life.
+  if (parts.length === 1 && (SECTIONS as readonly string[]).includes(parts[0])) {
+    return path;
+  }
+
+  // Section item: /projects/<slug>, /writing/<slug>, /art/<id>.
+  if (parts.length === 2 && (SECTIONS as readonly string[]).includes(parts[0])) {
+    return path;
+  }
+
+  // Root-level files and anything else (e.g. /README.txt) — not shareable.
+  return '/';
+}
+
+/**
  * Map a legacy hash fragment (from an older single-page version of the site)
  * to a filesystem/URL path.
  *
