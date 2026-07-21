@@ -3,18 +3,32 @@ import OsPage from '../layouts/OsPage.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 
+const homeUrl = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : undefined;
+// WebSite schema tells Google the site's name (otherwise it guesses from the
+// domain); Person is the rich-result identity card.
 const jsonLd = {
-  '@type': 'Person',
-  name: 'Derek Yao',
-  url: Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined,
-  email: 'mailto:yaoderek06@gmail.com',
-  affiliation: {
-    '@type': 'CollegeOrUniversity',
-    name: 'University of Washington',
-  },
-  sameAs: [
-    'https://github.com/yaoderek',
-    'https://linkedin.com/in/yaoderek',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: 'Derek Yao',
+      url: homeUrl,
+    },
+    {
+      '@type': 'Person',
+      name: 'Derek Yao',
+      url: homeUrl,
+      email: 'mailto:yaoderek06@gmail.com',
+      affiliation: {
+        '@type': 'CollegeOrUniversity',
+        name: 'University of Washington',
+      },
+      sameAs: [
+        'https://github.com/yaoderek',
+        'https://linkedin.com/in/yaoderek',
+      ],
+    },
   ],
 };
 ---

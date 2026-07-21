@@ -32,11 +32,13 @@ npm test          # run unit tests
 
 ### GitHub Pages (configured)
 
-The site is configured as a GitHub Pages **project site** at
-`https://yaoderek.github.io/personal/` — `astro.config.mjs` sets
-`site: 'https://yaoderek.github.io'` and `base: '/personal'`, and all internal
-links and client-side routing are base-aware (via `withBase`/`stripBase` in
-`src/lib/os/router.ts` and `import.meta.env.BASE_URL` in pages).
+The site is configured as a GitHub Pages **user site** at
+`https://yaoderek.github.io/` — `astro.config.mjs` sets
+`site: 'https://yaoderek.github.io'`, and all internal links and client-side
+routing are base-aware (via `withBase`/`stripBase` in `src/lib/os/router.ts`
+and `import.meta.env.BASE_URL` in pages), so a `base` can be reintroduced if
+the site ever moves back under a subpath. The old project-site URLs under
+`/personal/` are served as redirect stubs (`src/pages/personal/[...slug].astro`).
 
 Deploys run from `.github/workflows/deploy.yml` on every push to `main`.
 One-time setup: in GitHub repo **Settings → Pages**, set source to
