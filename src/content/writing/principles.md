@@ -1,11 +1,10 @@
 ---
-title: principles
+title: interesting words in my collection
 created: 2025-08-20
 ---
 
-think/act from first principles 
+Eigengrau: the dark grey perceived when you close your eyes in complete darkness. 16161D
 
-be maximally truth-seeking
+Verschlimbessen- to make something worse in the process of trying to make it better 
 
-take loss personally
-
+Petrichor: the smell of the rain 
